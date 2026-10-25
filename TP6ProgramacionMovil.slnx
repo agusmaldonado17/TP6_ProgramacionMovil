@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="TP6ProgramacionMovil/TP6ProgramacionMovil.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
+</Solution>

@@ -1,0 +1,77 @@
+﻿@page "/"
+@page "/login"
+
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+@using TP6ProgramacionMovil.Services
+
+<h1>Iniciar sesión</h1>
+
+<div class="mb-3">
+    <label>Usuario</label>
+    <input class="form-control" @bind="username" />
+</div>
+
+<div class="mb-3">
+    <label>Contraseña</label>
+    <input type="password"
+           class="form-control"
+           @bind="password" />
+</div>
+
+<button class="btn btn-primary"
+        @onclick="IniciarSesion">
+    Iniciar sesión
+</button>
+
+@if (!string.IsNullOrEmpty(mensaje))
+{
+    <div class="alert alert-danger mt-3">
+        @mensaje
+    </div>
+}
+
+@code {
+
+    private string username = "";
+    private string password = "";
+    private string mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var sesionExiste =
+            await AuthService.RestaurarSesionAsync();
+
+        if (sesionExiste)
+        {
+            Navigation.NavigateTo("/inicio");
+        }
+    }
+
+    private async Task IniciarSesion()
+    {
+        mensaje = "";
+
+        try
+        {
+            var usuario =
+                await AuthService.LoginAsync(
+                    username,
+                    password
+                );
+
+            if (usuario == null)
+            {
+                mensaje = "Usuario o contraseña incorrectos.";
+                return;
+            }
+
+            Navigation.NavigateTo("/inicio");
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error de conexión: {ex.Message}";
+        }
+    }
+}

@@ -1,0 +1,115 @@
+﻿@implements IDisposable
+
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+@using TP6ProgramacionMovil.Services
+
+<div class="top-row navbar navbar-dark">
+    <div class="nav-header">
+
+        <span class="navbar-brand">
+            TP6
+        </span>
+
+        <button class="navbar-toggler"
+                type="button"
+                title="Menú"
+                @onclick="ToggleNavMenu">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+    </div>
+</div>
+
+<div class="nav-scrollable @(menuAbierto ? "open" : "closed")">
+
+    <nav class="flex-column">
+
+        @if (AuthService.UsuarioActual != null)
+        {
+            <div class="px-3 py-3 text-white">
+
+                <div>
+                    <strong>
+                        @AuthService.UsuarioActual.Nombre
+                    </strong>
+                </div>
+
+                <small>
+                    @AuthService.UsuarioActual.Rol
+                </small>
+
+            </div>
+
+            <div class="nav-item px-3">
+
+                <NavLink class="nav-link"
+                         href="inicio"
+                         @onclick="CerrarMenu">
+
+                    Inicio
+
+                </NavLink>
+
+            </div>
+
+            <div class="nav-item px-3 mt-3">
+
+                <button class="btn btn-outline-light w-100"
+                        @onclick="CerrarSesion">
+
+                    Cerrar sesión
+
+                </button>
+
+            </div>
+        }
+
+    </nav>
+
+</div>
+
+@code {
+
+    private bool menuAbierto = false;
+
+    protected override void OnInitialized()
+    {
+        AuthService.OnAuthStateChanged += Actualizar;
+    }
+
+    private void ToggleNavMenu()
+    {
+        menuAbierto = !menuAbierto;
+    }
+
+    private void CerrarMenu()
+    {
+        menuAbierto = false;
+    }
+
+    private void Actualizar()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void CerrarSesion()
+    {
+        AuthService.Logout();
+
+        menuAbierto = false;
+
+        Navigation.NavigateTo(
+            "/login",
+            replace: true
+        );
+    }
+
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= Actualizar;
+    }
+}

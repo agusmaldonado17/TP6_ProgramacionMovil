@@ -1,0 +1,41 @@
+﻿@page "/inicio"
+
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+@using TP6ProgramacionMovil.Services
+
+<h1>Inicio</h1>
+
+@if (AuthService.UsuarioActual != null)
+{
+    <p>
+        Bienvenido
+        <strong>@AuthService.UsuarioActual.Nombre</strong>
+    </p>
+
+    <p>
+        Rol:
+        <strong>@AuthService.UsuarioActual.Rol</strong>
+    </p>
+}
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.EstaAutenticado)
+        {
+            var sesion =
+                await AuthService.RestaurarSesionAsync();
+
+            if (!sesion)
+            {
+                Navigation.NavigateTo(
+                    "/login",
+                    replace: true
+                );
+            }
+        }
+    }
+}
