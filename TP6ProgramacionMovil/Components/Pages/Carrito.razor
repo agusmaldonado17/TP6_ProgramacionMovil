@@ -1,0 +1,164 @@
+﻿@page "/carrito"
+
+@using TP6ProgramacionMovil.Services
+
+@inject CarritoService CarritoService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<h1>Carrito</h1>
+
+@if (CarritoService.Items.Count == 0)
+{
+    <div class="alert alert-info">
+        El carrito está vacío.
+    </div>
+
+    <button class="btn btn-primary"
+            @onclick="VolverCatalogo">
+        Ver productos
+    </button>
+}
+else
+{
+    @foreach (var item in CarritoService.Items)
+    {
+        <div class="card mb-3">
+
+            <div class="card-body">
+
+                <h5>
+                    @item.Producto.Nombre
+                </h5>
+
+                <p class="mb-1">
+                    Precio:
+                    <strong>
+                        $@item.Producto.PrecioVenta.ToString("N2")
+                    </strong>
+                </p>
+
+                <p>
+                    Stock disponible:
+                    @item.Producto.StockActual
+                </p>
+
+                <div class="d-flex align-items-center gap-2 mb-3">
+
+                    <button class="btn btn-outline-secondary"
+                            @onclick="() => Disminuir(item.Producto.Id)">
+                        -
+                    </button>
+
+                    <strong>
+                        @item.Cantidad
+                    </strong>
+
+                    <button class="btn btn-outline-secondary"
+                            disabled="@(item.Cantidad >= item.Producto.StockActual)"
+                            @onclick="() => Aumentar(item.Producto.Id)">
+                        +
+                    </button>
+
+                </div>
+
+                <p>
+                    Subtotal:
+                    <strong>
+                        $@item.Subtotal.ToString("N2")
+                    </strong>
+                </p>
+
+                <button class="btn btn-outline-danger"
+                        @onclick="() => Eliminar(item.Producto.Id)">
+                    Eliminar
+                </button>
+
+            </div>
+
+        </div>
+    }
+
+    <div class="card mt-4">
+
+        <div class="card-body">
+
+            <h4>
+                Total:
+                $@CarritoService.Total.ToString("N2")
+            </h4>
+
+            <p>
+                Productos:
+                @CarritoService.CantidadTotal
+            </p>
+
+            <button class="btn btn-success w-100 mb-2"
+                    @onclick="FinalizarCompra">
+                Finalizar compra
+            </button>
+
+            <button class="btn btn-outline-danger w-100"
+                    @onclick="VaciarCarrito">
+                Vaciar carrito
+            </button>
+
+        </div>
+
+    </div>
+}
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.EstaAutenticado)
+        {
+            var sesion =
+                await AuthService.RestaurarSesionAsync();
+
+            if (!sesion)
+            {
+                Navigation.NavigateTo(
+                    "/login",
+                    replace: true
+                );
+            }
+        }
+    }
+
+
+    private void Aumentar(int id)
+    {
+        CarritoService.AumentarCantidad(id);
+    }
+
+
+    private void Disminuir(int id)
+    {
+        CarritoService.DisminuirCantidad(id);
+    }
+
+
+    private void Eliminar(int id)
+    {
+        CarritoService.EliminarProducto(id);
+    }
+
+
+    private void VaciarCarrito()
+    {
+        CarritoService.Vaciar();
+    }
+
+
+    private void VolverCatalogo()
+    {
+        Navigation.NavigateTo("/catalogo");
+    }
+
+    private void FinalizarCompra()
+    {
+    Navigation.NavigateTo("/finalizar-compra");
+    }
+}

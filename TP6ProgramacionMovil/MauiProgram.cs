@@ -28,6 +28,11 @@ namespace TP6ProgramacionMovil
             });
 
             builder.Services.AddScoped<AuthService>();
+            builder.Services.AddScoped<ProductoService>();
+            builder.Services.AddScoped<ClienteService>();
+            builder.Services.AddScoped<VentaService>();
+
+            builder.Services.AddSingleton<CarritoService>();
 
             return builder.Build();
         }

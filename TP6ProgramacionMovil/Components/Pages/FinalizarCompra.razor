@@ -1,0 +1,339 @@
+﻿@page "/finalizar-compra"
+
+@using TP6ProgramacionMovil.Models
+@using TP6ProgramacionMovil.Services
+
+@inject ClienteService ClienteService
+@inject VentaService VentaService
+@inject CarritoService CarritoService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<h1>Finalizar compra</h1>
+
+@if (cargando)
+{
+    <p>Cargando...</p>
+}
+else if (!autorizado)
+{
+    <div class="alert alert-danger">
+        Tu usuario no tiene permisos para registrar ventas.
+    </div>
+}
+else if (ventaExitosa)
+{
+    <div class="alert alert-success">
+
+        <h4>Venta registrada correctamente</h4>
+
+        <p class="mb-1">
+            Venta N°:
+            <strong>@ventaId</strong>
+        </p>
+
+        <p class="mb-1">
+            Total:
+            <strong>
+                $@totalVenta.ToString("N2")
+            </strong>
+        </p>
+
+        <p>
+            Pago simulado:
+            <strong>@medioPago</strong>
+        </p>
+
+    </div>
+
+    <button class="btn btn-primary w-100 mb-2"
+            @onclick="VolverCatalogo">
+        Volver al catálogo
+    </button>
+
+    <button class="btn btn-outline-secondary w-100"
+            @onclick="VolverInicio">
+        Ir al inicio
+    </button>
+}
+else
+{
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">
+            @error
+        </div>
+    }
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            Cliente
+        </label>
+
+        <select class="form-select"
+                @bind="clienteId">
+
+            <option value="0">
+                Seleccionar cliente...
+            </option>
+
+            @foreach (var cliente in clientes)
+            {
+                <option value="@cliente.Id">
+                    @cliente.Nombre
+                    @if (!string.IsNullOrWhiteSpace(cliente.Documento))
+                    {
+                        <text> - @cliente.Documento</text>
+                    }
+                </option>
+            }
+
+        </select>
+
+    </div>
+
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            Medio de pago
+        </label>
+
+        <select class="form-select"
+                @bind="medioPago">
+
+            <option value="">
+                Seleccionar...
+            </option>
+
+            <option value="Efectivo">
+                Efectivo
+            </option>
+
+            <option value="Tarjeta">
+                Tarjeta
+            </option>
+
+            <option value="Transferencia">
+                Transferencia
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="card mb-3">
+
+        <div class="card-body">
+
+            <h5>Resumen</h5>
+
+            @foreach (var item in CarritoService.Items)
+            {
+                <div class="d-flex justify-content-between mb-2">
+
+                    <span>
+                        @item.Cantidad x @item.Producto.Nombre
+                    </span>
+
+                    <strong>
+                        $@item.Subtotal.ToString("N2")
+                    </strong>
+
+                </div>
+            }
+
+            <hr />
+
+            <div class="d-flex justify-content-between">
+
+                <strong>Total</strong>
+
+                <h4>
+                    $@CarritoService.Total.ToString("N2")
+                </h4>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <button class="btn btn-success w-100"
+            disabled="@procesando"
+            @onclick="ConfirmarVenta">
+
+        @if (procesando)
+        {
+            <span>Procesando...</span>
+        }
+        else
+        {
+            <span>Confirmar compra</span>
+        }
+
+    </button>
+}
+
+
+@code {
+
+    private List<ClienteResponse> clientes = new();
+
+    private int clienteId = 0;
+
+    private string medioPago = "";
+
+    private bool cargando = true;
+
+    private bool procesando = false;
+
+    private bool autorizado = true;
+
+    private bool ventaExitosa = false;
+
+    private string error = "";
+
+    private int ventaId;
+
+    private decimal totalVenta;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.EstaAutenticado)
+        {
+            var sesion =
+                await AuthService.RestaurarSesionAsync();
+
+            if (!sesion)
+            {
+                Navigation.NavigateTo(
+                    "/login",
+                    replace: true
+                );
+
+                return;
+            }
+        }
+
+        if (!AuthService.EsAdmin &&
+            !AuthService.EsVendedor)
+        {
+            autorizado = false;
+            cargando = false;
+            return;
+        }
+
+        if (CarritoService.Items.Count == 0)
+        {
+            Navigation.NavigateTo(
+                "/carrito",
+                replace: true
+            );
+
+            return;
+        }
+
+        try
+        {
+            clientes =
+                await ClienteService
+                    .ObtenerClientesAsync();
+        }
+        catch (Exception ex)
+        {
+            error =
+                $"No se pudieron cargar los clientes: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+
+    private async Task ConfirmarVenta()
+    {
+        error = "";
+
+        if (clienteId == 0)
+        {
+            error = "Debe seleccionar un cliente.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(medioPago))
+        {
+            error = "Debe seleccionar un medio de pago.";
+            return;
+        }
+
+        if (CarritoService.Items.Count == 0)
+        {
+            error = "El carrito está vacío.";
+            return;
+        }
+
+        procesando = true;
+
+        try
+        {
+            var venta = new VentaRequest
+            {
+                ClienteId = clienteId,
+
+                Detalles = CarritoService.Items
+                    .Select(item =>
+                        new DetalleVentaRequest
+                        {
+                            ProductoId =
+                                item.Producto.Id,
+
+                            Cantidad =
+                                item.Cantidad
+                        })
+                    .ToList()
+            };
+
+
+            var resultado =
+                await VentaService
+                    .RegistrarVentaAsync(venta);
+
+
+            ventaId = resultado.VentaId;
+
+            totalVenta = resultado.Total;
+
+            ventaExitosa = true;
+
+
+            CarritoService.Vaciar();
+        }
+        catch (Exception ex)
+        {
+            error =
+                $"No se pudo registrar la venta: {ex.Message}";
+        }
+        finally
+        {
+            procesando = false;
+        }
+    }
+
+
+    private void VolverCatalogo()
+    {
+        Navigation.NavigateTo("/catalogo");
+    }
+
+
+    private void VolverInicio()
+    {
+        Navigation.NavigateTo("/inicio");
+    }
+}

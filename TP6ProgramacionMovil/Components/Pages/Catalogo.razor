@@ -1,0 +1,298 @@
+﻿@page "/catalogo"
+
+@using TP6ProgramacionMovil.Models
+@using TP6ProgramacionMovil.Services
+
+@inject ProductoService ProductoService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject CarritoService CarritoService
+
+<h1>Catálogo</h1>
+
+<div class="mb-3">
+
+    <div class="input-group">
+
+        <input class="form-control"
+               placeholder="Buscar producto..."
+               @bind="busqueda" />
+
+        <button class="btn btn-primary"
+                @onclick="Buscar">
+            Buscar
+        </button>
+
+    </div>
+
+</div>
+
+@if (!string.IsNullOrEmpty(mensajeCarrito))
+{
+    <div class="alert alert-success">
+        @mensajeCarrito
+    </div>
+}
+
+@if (cargando)
+{
+    <p>Cargando productos...</p>
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger">
+        @error
+    </div>
+}
+else if (productos.Count == 0)
+{
+    <div class="alert alert-info">
+        No se encontraron productos.
+    </div>
+}
+else
+{
+    <div class="row g-3">
+
+        @foreach (var producto in productos)
+        {
+            <div class="col-12 col-sm-6">
+
+                <div class="card h-100">
+
+                    @{
+                        var imagen =
+                            ProductoService
+                                .ObtenerUrlImagen(producto);
+                    }
+
+                    @if (!string.IsNullOrEmpty(imagen))
+                    {
+                        <img src="@imagen"
+                             class="card-img-top"
+                             style="height: 180px; object-fit: contain;"
+                             alt="@producto.Nombre" />
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-center bg-light"
+                             style="height: 180px;">
+                            Sin imagen
+                        </div>
+                    }
+
+                    <div class="card-body">
+
+                        <small class="text-muted">
+                            @producto.CategoriaNombre
+                        </small>
+
+                        <h5 class="card-title mt-1">
+                            @producto.Nombre
+                        </h5>
+
+                        @if (!string.IsNullOrWhiteSpace(
+                                producto.Descripcion))
+                        {
+                            <p class="card-text">
+                                @producto.Descripcion
+                            </p>
+                        }
+
+                        <h4>
+                            $@producto.PrecioVenta.ToString("N2")
+                        </h4>
+
+                        @if (producto.StockActual > 0)
+                        {
+                            <span class="badge bg-success">
+                                Stock: @producto.StockActual
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">
+                                Sin stock
+                            </span>
+                        }
+
+                        <div class="mt-3">
+
+                            <button class="btn btn-primary w-100"
+                                    disabled="@(producto.StockActual <= 0)"
+                                    @onclick="() => AgregarAlCarrito(producto)">
+
+                                Agregar al carrito
+
+                            </button>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4">
+
+        <button class="btn btn-outline-primary"
+                disabled="@(!tieneAnterior)"
+                @onclick="PaginaAnterior">
+            Anterior
+        </button>
+
+        <span>
+            Página @paginaActual de @totalPaginas
+        </span>
+
+        <button class="btn btn-outline-primary"
+                disabled="@(!tieneSiguiente)"
+                @onclick="PaginaSiguiente">
+            Siguiente
+        </button>
+
+    </div>
+}
+
+@code {
+
+    private List<ProductoResponse> productos = new();
+
+    private bool cargando = true;
+
+    private string error = "";
+
+    private string busqueda = "";
+
+    private int paginaActual = 1;
+
+    private int totalPaginas = 1;
+
+    private bool tieneAnterior;
+
+    private bool tieneSiguiente;
+
+    private string mensajeCarrito = "";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.EstaAutenticado)
+        {
+            var sesion =
+                await AuthService.RestaurarSesionAsync();
+
+            if (!sesion)
+            {
+                Navigation.NavigateTo(
+                    "/login",
+                    replace: true
+                );
+
+                return;
+            }
+        }
+
+        await CargarProductos();
+    }
+
+
+    private async Task CargarProductos()
+    {
+        cargando = true;
+        error = "";
+
+        try
+        {
+            var respuesta =
+                await ProductoService
+                    .ObtenerProductosAsync(
+                        paginaActual,
+                        20,
+                        busqueda
+                    );
+
+            if (respuesta == null)
+            {
+                error =
+                    "No se pudieron cargar los productos.";
+
+                return;
+            }
+
+            productos = respuesta.Datos;
+
+            paginaActual = respuesta.PaginaActual;
+
+            totalPaginas = respuesta.TotalPaginas;
+
+            tieneAnterior =
+                respuesta.TienePaginaAnterior;
+
+            tieneSiguiente =
+                respuesta.TienePaginaSiguiente;
+        }
+        catch (Exception ex)
+        {
+            error =
+                $"Error al cargar productos: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+
+    private async Task Buscar()
+    {
+        paginaActual = 1;
+
+        await CargarProductos();
+    }
+
+
+    private async Task PaginaAnterior()
+    {
+        if (paginaActual <= 1)
+            return;
+
+        paginaActual--;
+
+        await CargarProductos();
+    }
+
+
+    private async Task PaginaSiguiente()
+    {
+        if (!tieneSiguiente)
+            return;
+
+        paginaActual++;
+
+        await CargarProductos();
+    }
+
+    private void AgregarAlCarrito(
+        ProductoResponse producto)
+    {
+        var agregado =
+            CarritoService.AgregarProducto(producto);
+
+        if (agregado)
+        {
+            mensajeCarrito =
+                $"{producto.Nombre} agregado al carrito.";
+        }
+        else
+        {
+            mensajeCarrito =
+                "No hay más stock disponible.";
+        }
+    }
+}
