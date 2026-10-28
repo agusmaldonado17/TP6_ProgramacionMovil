@@ -1,0 +1,431 @@
+﻿@page "/entrada-mercaderia"
+
+@using TP6ProgramacionMovil.Models
+@using TP6ProgramacionMovil.Services
+
+@inject AuthService AuthService
+@inject ProductoService ProductoService
+@inject ProveedorService ProveedorService
+@inject CompraService CompraService
+@inject NavigationManager Navigation
+
+<h1>Entrada de mercadería</h1>
+
+@if (cargando)
+{
+    <p>Cargando...</p>
+}
+else if (!AuthService.EsAdmin)
+{
+    <div class="alert alert-danger">
+        No tenés permisos para acceder a esta sección.
+    </div>
+}
+else if (entradaExitosa)
+{
+    <div class="alert alert-success">
+
+        <h4>Entrada registrada correctamente</h4>
+
+        <p>
+            Entrada N°:
+            <strong>@compraId</strong>
+        </p>
+
+        <p>
+            Total:
+            <strong>$@totalCompra.ToString("N2")</strong>
+        </p>
+
+    </div>
+
+    <button class="btn btn-primary"
+            @onclick="NuevaEntrada">
+        Registrar otra entrada
+    </button>
+}
+else
+{
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">
+            @error
+        </div>
+    }
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            Proveedor
+        </label>
+
+        <select class="form-select"
+                @bind="proveedorId">
+
+            <option value="0">
+                Seleccionar proveedor...
+            </option>
+
+            @foreach (var proveedor in proveedores)
+            {
+                <option value="@proveedor.Id">
+                    @proveedor.RazonSocial
+                </option>
+            }
+
+        </select>
+
+    </div>
+
+
+    <div class="card mb-3">
+
+        <div class="card-body">
+
+            <h5>Agregar producto</h5>
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Producto
+                </label>
+
+                <select class="form-select"
+                        @bind="productoId">
+
+                    <option value="0">
+                        Seleccionar producto...
+                    </option>
+
+                    @foreach (var producto in productos)
+                    {
+                        <option value="@producto.Id">
+                            @producto.Nombre
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Cantidad
+                </label>
+
+                <input type="number"
+                       min="1"
+                       class="form-control"
+                       @bind="cantidad" />
+
+            </div>
+
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Precio de compra unitario
+                </label>
+
+                <input type="number"
+                       min="0.01"
+                       step="0.01"
+                       class="form-control"
+                       @bind="precioUnitario" />
+
+            </div>
+
+
+            <button class="btn btn-primary w-100"
+                    @onclick="AgregarProducto">
+                Agregar a la entrada
+            </button>
+
+        </div>
+
+    </div>
+
+
+    @if (items.Count > 0)
+    {
+        <h5>Productos de la entrada</h5>
+
+        @foreach (var item in items)
+        {
+            <div class="card mb-2">
+
+                <div class="card-body">
+
+                    <strong>
+                        @item.Producto.Nombre
+                    </strong>
+
+                    <div>
+                        Cantidad: @item.Cantidad
+                    </div>
+
+                    <div>
+                        Precio:
+                        $@item.PrecioUnitario.ToString("N2")
+                    </div>
+
+                    <div>
+                        Subtotal:
+                        <strong>
+                            $@item.Subtotal.ToString("N2")
+                        </strong>
+                    </div>
+
+                    <button class="btn btn-outline-danger mt-2"
+                            @onclick="() => EliminarItem(item)">
+                        Eliminar
+                    </button>
+
+                </div>
+
+            </div>
+        }
+
+
+        <div class="card mt-3">
+
+            <div class="card-body">
+
+                <h4>
+                    Total:
+                    $@Total.ToString("N2")
+                </h4>
+
+                <button class="btn btn-success w-100"
+                        disabled="@procesando"
+                        @onclick="RegistrarEntrada">
+
+                    @(procesando
+                        ? "Registrando..."
+                        : "Registrar entrada")
+
+                </button>
+
+            </div>
+
+        </div>
+    }
+}
+
+
+@code {
+
+    private List<ProveedorResponse> proveedores = new();
+    private List<ProductoResponse> productos = new();
+    private List<ItemEntrada> items = new();
+
+    private int proveedorId;
+    private int productoId;
+    private int cantidad = 1;
+
+    private decimal precioUnitario;
+
+    private bool cargando = true;
+    private bool procesando;
+    private bool entradaExitosa;
+
+    private string error = "";
+
+    private int compraId;
+    private decimal totalCompra;
+
+
+    private decimal Total =>
+        items.Sum(i => i.Subtotal);
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.EstaAutenticado)
+        {
+            var sesion =
+                await AuthService.RestaurarSesionAsync();
+
+            if (!sesion)
+            {
+                Navigation.NavigateTo(
+                    "/login",
+                    replace: true
+                );
+
+                return;
+            }
+        }
+
+        if (!AuthService.EsAdmin)
+        {
+            cargando = false;
+            return;
+        }
+
+        try
+        {
+            proveedores =
+                await ProveedorService
+                    .ObtenerProveedoresAsync();
+
+            var respuestaProductos =
+                await ProductoService
+                    .ObtenerProductosAsync(
+                        1,
+                        50
+                    );
+
+            productos =
+                respuestaProductos?.Datos
+                    .Where(p => p.Activo)
+                    .ToList()
+                ?? new();
+        }
+        catch (Exception ex)
+        {
+            error =
+                $"Error al cargar datos: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+
+    private void AgregarProducto()
+    {
+        error = "";
+
+        if (productoId == 0)
+        {
+            error = "Debe seleccionar un producto.";
+            return;
+        }
+
+        if (cantidad <= 0)
+        {
+            error = "La cantidad debe ser mayor a cero.";
+            return;
+        }
+
+        if (precioUnitario <= 0)
+        {
+            error = "El precio debe ser mayor a cero.";
+            return;
+        }
+
+        var producto =
+            productos.FirstOrDefault(
+                p => p.Id == productoId
+            );
+
+        if (producto == null)
+            return;
+
+        var existente =
+            items.FirstOrDefault(
+                i => i.Producto.Id == productoId
+            );
+
+        if (existente != null)
+        {
+            existente.Cantidad += cantidad;
+            existente.PrecioUnitario = precioUnitario;
+        }
+        else
+        {
+            items.Add(
+                new ItemEntrada
+                {
+                    Producto = producto,
+                    Cantidad = cantidad,
+                    PrecioUnitario = precioUnitario
+                }
+            );
+        }
+
+        productoId = 0;
+        cantidad = 1;
+        precioUnitario = 0;
+    }
+
+
+    private void EliminarItem(ItemEntrada item)
+    {
+        items.Remove(item);
+    }
+
+
+    private async Task RegistrarEntrada()
+    {
+        error = "";
+
+        if (proveedorId == 0)
+        {
+            error = "Debe seleccionar un proveedor.";
+            return;
+        }
+
+        if (items.Count == 0)
+        {
+            error = "Debe agregar al menos un producto.";
+            return;
+        }
+
+        procesando = true;
+
+        try
+        {
+            var compra = new CompraRequest
+            {
+                ProveedorId = proveedorId,
+
+                Detalles = items
+                    .Select(i =>
+                        new DetalleCompraRequest
+                        {
+                            ProductoId = i.Producto.Id,
+                            Cantidad = i.Cantidad,
+                            PrecioUnitario = i.PrecioUnitario
+                        })
+                    .ToList()
+            };
+
+            var resultado =
+                await CompraService
+                    .RegistrarCompraAsync(compra);
+
+            compraId = resultado.CompraId;
+            totalCompra = resultado.Total;
+
+            entradaExitosa = true;
+        }
+        catch (Exception ex)
+        {
+            error =
+                $"No se pudo registrar la entrada: {ex.Message}";
+        }
+        finally
+        {
+            procesando = false;
+        }
+    }
+
+
+    private void NuevaEntrada()
+    {
+        proveedorId = 0;
+        productoId = 0;
+        cantidad = 1;
+        precioUnitario = 0;
+
+        items.Clear();
+
+        entradaExitosa = false;
+        error = "";
+    }
+}

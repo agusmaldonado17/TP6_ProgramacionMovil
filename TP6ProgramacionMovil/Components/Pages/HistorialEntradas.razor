@@ -1,0 +1,221 @@
+﻿@page "/historial-entradas"
+
+@using TP6ProgramacionMovil.Models
+@using TP6ProgramacionMovil.Services
+
+@inject CompraService CompraService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<h1>Historial de entradas</h1>
+
+@if (cargando)
+{
+    <p>Cargando...</p>
+}
+else if (!AuthService.EsAdmin)
+{
+    <div class="alert alert-danger">
+        No tenés permisos para acceder.
+    </div>
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger">
+        @error
+    </div>
+}
+else if (compras.Count == 0)
+{
+    <div class="alert alert-info">
+        No hay entradas registradas.
+    </div>
+}
+else
+{
+    @foreach (var compra in compras)
+    {
+        <div class="card mb-3">
+
+            <div class="card-body">
+
+                <h5>
+                    Entrada N° @compra.Id
+                </h5>
+
+                <p class="mb-1">
+                    Fecha:
+                    @compra.Fecha.ToString("dd/MM/yyyy HH:mm")
+                </p>
+
+                <p class="mb-1">
+                    Proveedor:
+                    <strong>@compra.ProveedorNombre</strong>
+                </p>
+
+                <p class="mb-1">
+                    Registrada por:
+                    @compra.UsuarioNombre
+                </p>
+
+                <p>
+                    Total:
+                    <strong>
+                        $@compra.Total.ToString("N2")
+                    </strong>
+                </p>
+
+                <hr />
+
+                @foreach (var detalle in compra.Detalles)
+                {
+                    <div class="mb-2">
+
+                        <strong>
+                            @detalle.ProductoNombre
+                        </strong>
+
+                        <div>
+                            @detalle.Cantidad x
+                            $@detalle.PrecioUnitario.ToString("N2")
+                        </div>
+
+                        <div>
+                            Subtotal:
+                            $@detalle.Subtotal.ToString("N2")
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center">
+
+        <button class="btn btn-outline-primary"
+                disabled="@(paginaActual <= 1)"
+                @onclick="Anterior">
+
+            Anterior
+
+        </button>
+
+        <span>
+            Página @paginaActual de @totalPaginas
+        </span>
+
+        <button class="btn btn-outline-primary"
+                disabled="@(paginaActual >= totalPaginas)"
+                @onclick="Siguiente">
+
+            Siguiente
+
+        </button>
+
+    </div>
+}
+
+@code {
+
+    private List<CompraResponse> compras = new();
+
+    private bool cargando = true;
+    private string error = "";
+
+    private int paginaActual = 1;
+    private int totalPaginas = 1;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.EstaAutenticado)
+        {
+            var sesion =
+                await AuthService.RestaurarSesionAsync();
+
+            if (!sesion)
+            {
+                Navigation.NavigateTo(
+                    "/login",
+                    replace: true
+                );
+
+                return;
+            }
+        }
+
+        if (!AuthService.EsAdmin)
+        {
+            cargando = false;
+            return;
+        }
+
+        await Cargar();
+    }
+
+
+    private async Task Cargar()
+    {
+        cargando = true;
+        error = "";
+
+        try
+        {
+            var respuesta =
+                await CompraService
+                    .ObtenerComprasAsync(
+                        paginaActual,
+                        20
+                    );
+
+            if (respuesta == null)
+            {
+                error =
+                    "No se pudo cargar el historial.";
+                return;
+            }
+
+            compras = respuesta.Datos;
+
+            paginaActual =
+                respuesta.PaginaActual;
+
+            totalPaginas =
+                respuesta.TotalPaginas;
+        }
+        catch (Exception ex)
+        {
+            error =
+                $"Error: {ex.Message}";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+
+    private async Task Anterior()
+    {
+        if (paginaActual <= 1)
+            return;
+
+        paginaActual--;
+
+        await Cargar();
+    }
+
+
+    private async Task Siguiente()
+    {
+        if (paginaActual >= totalPaginas)
+            return;
+
+        paginaActual++;
+
+        await Cargar();
+    }
+}
