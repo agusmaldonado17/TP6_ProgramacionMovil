@@ -1,0 +1,295 @@
+﻿@page "/reportes"
+
+@using TP6ProgramacionMovil.Services
+@using Microsoft.Maui.ApplicationModel
+@using Microsoft.Maui.Storage
+
+@inject ReporteService ReporteService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<h1>Reportes</h1>
+
+@if (cargando)
+{
+    <p>Cargando...</p>
+}
+else if (!AuthService.EsAdmin)
+{
+    <div class="alert alert-danger">
+        No tenés permisos para acceder a esta sección.
+    </div>
+}
+else
+{
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert alert-success">
+            @mensaje
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">
+            @error
+        </div>
+    }
+
+    <div class="card mb-3">
+
+        <div class="card-body">
+
+            <h5>Reporte de stock</h5>
+
+            <p>
+                Estado actual del stock de productos.
+            </p>
+
+            <button class="btn btn-primary"
+                    disabled="@procesando"
+                    @onclick='() => AbrirReporte("stock")'>
+
+                Abrir PDF
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="card mb-3">
+
+        <div class="card-body">
+
+            <h5>Reporte de ventas</h5>
+
+            <p>
+                Listado de ventas registradas.
+            </p>
+
+            <button class="btn btn-primary"
+                    disabled="@procesando"
+                    @onclick='() => AbrirReporte("ventas")'>
+
+                Abrir PDF
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="card mb-4">
+
+        <div class="card-body">
+
+            <h5>Reporte de entradas</h5>
+
+            <p>
+                Entradas de mercadería registradas.
+            </p>
+
+            <button class="btn btn-primary"
+                    disabled="@procesando"
+                    @onclick='() => AbrirReporte("entradas")'>
+
+                Abrir PDF
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div class="card-body">
+
+            <h5>Enviar reporte por correo</h5>
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Correo electrónico
+                </label>
+
+                <input type="email"
+                       class="form-control"
+                       placeholder="correo@ejemplo.com"
+                       @bind="email" />
+
+            </div>
+
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Tipo de reporte
+                </label>
+
+                <select class="form-select"
+                        @bind="tipoReporte">
+
+                    <option value="">
+                        Seleccionar...
+                    </option>
+
+                    <option value="stock">
+                        Stock
+                    </option>
+
+                    <option value="ventas">
+                        Ventas
+                    </option>
+
+                    <option value="entradas">
+                        Entradas
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <button class="btn btn-success w-100"
+                    disabled="@procesando"
+                    @onclick="EnviarReporte">
+
+                @(procesando
+                    ? "Procesando..."
+                    : "Enviar reporte")
+
+            </button>
+
+        </div>
+
+    </div>
+}
+
+
+@code {
+
+    private bool cargando = true;
+    private bool procesando;
+
+    private string email = "";
+    private string tipoReporte = "";
+
+    private string mensaje = "";
+    private string error = "";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.EstaAutenticado)
+        {
+            var sesion =
+                await AuthService.RestaurarSesionAsync();
+
+            if (!sesion)
+            {
+                Navigation.NavigateTo(
+                    "/login",
+                    replace: true
+                );
+
+                return;
+            }
+        }
+
+        cargando = false;
+    }
+
+
+    private async Task AbrirReporte(string tipo)
+    {
+        mensaje = "";
+        error = "";
+        procesando = true;
+
+        try
+        {
+            var pdf =
+                await ReporteService
+                    .ObtenerPdfAsync(tipo);
+
+            var nombreArchivo =
+                $"{tipo}.pdf";
+
+            var ruta =
+                Path.Combine(
+                    FileSystem.CacheDirectory,
+                    nombreArchivo
+                );
+
+            await File.WriteAllBytesAsync(
+                ruta,
+                pdf
+            );
+
+            await Launcher.Default.OpenAsync(
+                new OpenFileRequest(
+                    "Abrir reporte",
+                    new ReadOnlyFile(ruta)
+                )
+            );
+        }
+        catch (Exception ex)
+        {
+            error =
+                $"No se pudo abrir el reporte: {ex.Message}";
+        }
+        finally
+        {
+            procesando = false;
+        }
+    }
+
+
+    private async Task EnviarReporte()
+    {
+        mensaje = "";
+        error = "";
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            error =
+                "Debe ingresar un correo electrónico.";
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(tipoReporte))
+        {
+            error =
+                "Debe seleccionar un tipo de reporte.";
+
+            return;
+        }
+
+        procesando = true;
+
+        try
+        {
+            mensaje =
+                await ReporteService
+                    .EnviarReporteAsync(
+                        email,
+                        tipoReporte
+                    );
+        }
+        catch (Exception ex)
+        {
+            error =
+                $"No se pudo enviar el reporte: {ex.Message}";
+        }
+        finally
+        {
+            procesando = false;
+        }
+    }
+}

@@ -33,6 +33,7 @@ namespace TP6ProgramacionMovil
             builder.Services.AddScoped<VentaService>();
             builder.Services.AddScoped<ProveedorService>();
             builder.Services.AddScoped<CompraService>();
+            builder.Services.AddScoped<ReporteService>();
 
             builder.Services.AddSingleton<CarritoService>();
 
