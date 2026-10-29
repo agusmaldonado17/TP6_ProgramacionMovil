@@ -4,39 +4,106 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-@using TP6ProgramacionMovil.Services
+<div style="min-height: 90vh;"
+     class="d-flex align-center justify-center">
 
-<h1>Iniciar sesión</h1>
+    <MudPaper Elevation="6"
+              Class="pa-8"
+              Style="width: 100%; max-width: 430px; border-radius: 20px;">
 
-<div class="mb-3">
-    <label>Usuario</label>
-    <input class="form-control" @bind="username" />
+        <MudStack Spacing="4">
+
+            <div class="text-center">
+
+                <MudAvatar Color="Color.Primary"
+                           Size="Size.Large"
+                           Class="mx-auto mb-3">
+
+                    <MudIcon Icon="@Icons.Material.Filled.Storefront" />
+
+                </MudAvatar>
+
+                <MudText Typo="Typo.h4">
+                    Sistema de Ventas
+                </MudText>
+
+                <MudText Typo="Typo.body2"
+                         Color="Color.Secondary">
+
+                    Ingresá con tu usuario para continuar
+
+                </MudText>
+
+            </div>
+
+
+            <MudTextField T="string"
+                          @bind-Value="username"
+                          Label="Usuario"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Person"
+                          Disabled="@procesando" />
+
+
+            <MudTextField T="string"
+                          @bind-Value="password"
+                          Label="Contraseña"
+                          Variant="Variant.Outlined"
+                          InputType="InputType.Password"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Lock"
+                          Disabled="@procesando" />
+
+
+            @if (!string.IsNullOrEmpty(mensaje))
+            {
+                <MudAlert Severity="Severity.Error"
+                          Variant="Variant.Outlined">
+
+                    @mensaje
+
+                </MudAlert>
+            }
+
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Size="Size.Large"
+                       FullWidth="true"
+                       Disabled="@procesando"
+                       OnClick="IniciarSesion">
+
+                @if (procesando)
+                {
+                    <MudProgressCircular Indeterminate="true"
+                                         Size="Size.Small"
+                                         Class="mr-2" />
+
+                    <span>Ingresando...</span>
+                }
+                else
+                {
+                    <span>Iniciar sesión</span>
+                }
+
+            </MudButton>
+
+        </MudStack>
+
+    </MudPaper>
+
 </div>
 
-<div class="mb-3">
-    <label>Contraseña</label>
-    <input type="password"
-           class="form-control"
-           @bind="password" />
-</div>
-
-<button class="btn btn-primary"
-        @onclick="IniciarSesion">
-    Iniciar sesión
-</button>
-
-@if (!string.IsNullOrEmpty(mensaje))
-{
-    <div class="alert alert-danger mt-3">
-        @mensaje
-    </div>
-}
 
 @code {
 
     private string username = "";
     private string password = "";
     private string mensaje = "";
+
+    private bool procesando;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,9 +116,11 @@
         }
     }
 
+
     private async Task IniciarSesion()
     {
         mensaje = "";
+        procesando = true;
 
         try
         {
@@ -63,7 +132,9 @@
 
             if (usuario == null)
             {
-                mensaje = "Usuario o contraseña incorrectos.";
+                mensaje =
+                    "Usuario o contraseña incorrectos.";
+
                 return;
             }
 
@@ -71,7 +142,12 @@
         }
         catch (Exception ex)
         {
-            mensaje = $"Error de conexión: {ex.Message}";
+            mensaje =
+                $"Error de conexión: {ex.Message}";
+        }
+        finally
+        {
+            procesando = false;
         }
     }
 }

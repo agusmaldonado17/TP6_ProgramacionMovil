@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using TP6ProgramacionMovil.Services;
+using MudBlazor.Services;
 
 namespace TP6ProgramacionMovil
 {
@@ -16,9 +17,10 @@ namespace TP6ProgramacionMovil
                 });
 
             builder.Services.AddMauiBlazorWebView();
+            builder.Services.AddMudServices();
 
 #if DEBUG
-    		builder.Services.AddBlazorWebViewDeveloperTools();
+            builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();
 #endif
 

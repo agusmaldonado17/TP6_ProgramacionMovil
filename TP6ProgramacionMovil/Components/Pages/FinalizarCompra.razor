@@ -9,191 +9,318 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<h1>Finalizar compra</h1>
 
-@if (cargando)
-{
-    <p>Cargando...</p>
-}
-else if (!autorizado)
-{
-    <div class="alert alert-danger">
-        Tu usuario no tiene permisos para registrar ventas.
-    </div>
-}
-else if (ventaExitosa)
-{
-    <div class="alert alert-success">
+<MudStack Spacing="4">
 
-        <h4>Venta registrada correctamente</h4>
+    <div>
 
-        <p class="mb-1">
-            Venta N°:
-            <strong>@ventaId</strong>
-        </p>
+        <MudText Typo="Typo.h4">
+            Finalizar compra
+        </MudText>
 
-        <p class="mb-1">
-            Total:
-            <strong>
-                $@totalVenta.ToString("N2")
-            </strong>
-        </p>
+        <MudText Typo="Typo.body1"
+                 Color="Color.Secondary">
 
-        <p>
-            Pago simulado:
-            <strong>@medioPago</strong>
-        </p>
+            Revisá los datos y confirmá la venta
+
+        </MudText>
 
     </div>
 
-    <button class="btn btn-primary w-100 mb-2"
-            @onclick="VolverCatalogo">
-        Volver al catálogo
-    </button>
 
-    <button class="btn btn-outline-secondary w-100"
-            @onclick="VolverInicio">
-        Ir al inicio
-    </button>
-}
-else
-{
-    @if (!string.IsNullOrEmpty(error))
+    @if (cargando)
     {
-        <div class="alert alert-danger">
-            @error
+        <div class="d-flex justify-center pa-8">
+
+            <MudProgressCircular Indeterminate="true"
+                                 Color="Color.Primary"
+                                 Size="Size.Large" />
+
         </div>
     }
+    else if (!autorizado)
+    {
+        <MudAlert Severity="Severity.Error">
 
-    <div class="mb-3">
+            Tu usuario no tiene permisos para registrar ventas.
 
-        <label class="form-label">
-            Cliente
-        </label>
+        </MudAlert>
+    }
+    else if (ventaExitosa)
+    {
+        <MudPaper Elevation="1"
+                  Class="pa-6"
+                  Style="border-radius: 20px;">
 
-        <select class="form-select"
-                @bind="clienteId">
+            <MudStack AlignItems="AlignItems.Center"
+                      Spacing="3">
 
-            <option value="0">
-                Seleccionar cliente...
-            </option>
+                <MudAvatar Color="Color.Success"
+                           Size="Size.Large">
 
-            @foreach (var cliente in clientes)
-            {
-                <option value="@cliente.Id">
-                    @cliente.Nombre
-                    @if (!string.IsNullOrWhiteSpace(cliente.Documento))
-                    {
-                        <text> - @cliente.Documento</text>
-                    }
-                </option>
-            }
+                    <MudIcon Icon="@Icons.Material.Filled.Check" />
 
-        </select>
-
-    </div>
+                </MudAvatar>
 
 
-    <div class="mb-3">
-
-        <label class="form-label">
-            Medio de pago
-        </label>
-
-        <select class="form-select"
-                @bind="medioPago">
-
-            <option value="">
-                Seleccionar...
-            </option>
-
-            <option value="Efectivo">
-                Efectivo
-            </option>
-
-            <option value="Tarjeta">
-                Tarjeta
-            </option>
-
-            <option value="Transferencia">
-                Transferencia
-            </option>
-
-        </select>
-
-    </div>
+                <MudText Typo="Typo.h5">
+                    Venta registrada correctamente
+                </MudText>
 
 
-    <div class="card mb-3">
+                <MudText Typo="Typo.body1">
 
-        <div class="card-body">
+                    Venta N°
+                    <strong>@ventaId</strong>
 
-            <h5>Resumen</h5>
-
-            @foreach (var item in CarritoService.Items)
-            {
-                <div class="d-flex justify-content-between mb-2">
-
-                    <span>
-                        @item.Cantidad x @item.Producto.Nombre
-                    </span>
-
-                    <strong>
-                        $@item.Subtotal.ToString("N2")
-                    </strong>
-
-                </div>
-            }
-
-            <hr />
-
-            <div class="d-flex justify-content-between">
-
-                <strong>Total</strong>
-
-                <h4>
-                    $@CarritoService.Total.ToString("N2")
-                </h4>
-
-            </div>
-
-        </div>
-
-    </div>
+                </MudText>
 
 
-    <button class="btn btn-success w-100"
-            disabled="@procesando"
-            @onclick="ConfirmarVenta">
+                <MudText Typo="Typo.h4"
+                         Color="Color.Success">
 
-        @if (procesando)
+                    $@totalVenta.ToString("N2")
+
+                </MudText>
+
+
+                <MudChip T="string"
+                         Color="Color.Primary"
+                         Variant="Variant.Outlined">
+
+                    Pago: @medioPago
+
+                </MudChip>
+
+
+                <MudStack Row="true"
+                          Class="mt-3">
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="VolverCatalogo">
+
+                        Volver al catálogo
+
+                    </MudButton>
+
+
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               OnClick="VolverInicio">
+
+                        Ir al inicio
+
+                    </MudButton>
+
+                </MudStack>
+
+            </MudStack>
+
+        </MudPaper>
+    }
+    else
+    {
+        @if (!string.IsNullOrEmpty(error))
         {
-            <span>Procesando...</span>
-        }
-        else
-        {
-            <span>Confirmar compra</span>
+            <MudAlert Severity="Severity.Error"
+                      Class="mb-3">
+
+                @error
+
+            </MudAlert>
         }
 
-    </button>
-}
+
+        <MudGrid>
+
+            <MudItem xs="12"
+                     md="7">
+
+                <MudPaper Elevation="1"
+                          Class="pa-5"
+                          Style="border-radius: 20px;">
+
+                    <MudText Typo="Typo.h6"
+                             Class="mb-4">
+
+                        Datos de la venta
+
+                    </MudText>
+
+
+                    <MudStack Spacing="4">
+
+                        <MudSelect T="int"
+                                   Label="Cliente"
+                                   Variant="Variant.Outlined"
+                                   @bind-Value="clienteId">
+
+                            <MudSelectItem T="int"
+                                           Value="0">
+
+                                Seleccionar cliente...
+
+                            </MudSelectItem>
+
+                            @foreach (var cliente in clientes)
+                            {
+                                <MudSelectItem T="int"
+                                               Value="@cliente.Id">
+
+                                    @TextoCliente(cliente)
+
+                                </MudSelectItem>
+                            }
+
+                        </MudSelect>
+
+
+                        <MudSelect T="string"
+                                   Label="Medio de pago"
+                                   Variant="Variant.Outlined"
+                                   @bind-Value="medioPago">
+
+                            <MudSelectItem T="string"
+                                           Value="@string.Empty">
+
+                                Seleccionar...
+
+                            </MudSelectItem>
+
+                            <MudSelectItem T="string"
+                                           Value="@("Efectivo")">
+
+                                Efectivo
+
+                            </MudSelectItem>
+
+                            <MudSelectItem T="string"
+                                           Value="@("Tarjeta")">
+
+                                Tarjeta
+
+                            </MudSelectItem>
+
+                            <MudSelectItem T="string"
+                                           Value="@("Transferencia")">
+
+                                Transferencia
+
+                            </MudSelectItem>
+
+                        </MudSelect>
+
+                    </MudStack>
+
+                </MudPaper>
+
+            </MudItem>
+
+
+            <MudItem xs="12"
+                     md="5">
+
+                <MudPaper Elevation="2"
+                          Class="pa-5"
+                          Style="border-radius: 20px;">
+
+                    <MudText Typo="Typo.h6"
+                             Class="mb-4">
+
+                        Resumen
+
+                    </MudText>
+
+
+                    <MudStack Spacing="2">
+
+                        @foreach (var item in CarritoService.Items)
+                        {
+                            <MudStack Row="true"
+                                      Justify="Justify.SpaceBetween">
+
+                                <MudText Typo="Typo.body2">
+
+                                    @item.Cantidad x
+                                    @item.Producto.Nombre
+
+                                </MudText>
+
+
+                                <MudText Typo="Typo.body2">
+
+                                    $@item.Subtotal.ToString("N2")
+
+                                </MudText>
+
+                            </MudStack>
+                        }
+
+
+                        <MudDivider Class="my-2" />
+
+
+                        <MudStack Row="true"
+                                  Justify="Justify.SpaceBetween"
+                                  AlignItems="AlignItems.Center">
+
+                            <MudText Typo="Typo.h6">
+                                Total
+                            </MudText>
+
+                            <MudText Typo="Typo.h4"
+                                     Color="Color.Primary">
+
+                                $@CarritoService.Total.ToString("N2")
+
+                            </MudText>
+
+                        </MudStack>
+
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Success"
+                                   Size="Size.Large"
+                                   FullWidth="true"
+                                   Disabled="@procesando"
+                                   StartIcon="@Icons.Material.Filled.CheckCircle"
+                                   OnClick="ConfirmarVenta">
+
+                            @(procesando
+                                ? "Procesando..."
+                                : "Confirmar compra")
+
+                        </MudButton>
+
+                    </MudStack>
+
+                </MudPaper>
+
+            </MudItem>
+
+        </MudGrid>
+    }
+
+</MudStack>
 
 
 @code {
 
-    private List<ClienteResponse> clientes = new();
+    private List<ClienteResponse> clientes =
+        new();
 
-    private int clienteId = 0;
+    private int clienteId;
 
     private string medioPago = "";
 
     private bool cargando = true;
 
-    private bool procesando = false;
+    private bool procesando;
 
     private bool autorizado = true;
 
-    private bool ventaExitosa = false;
+    private bool ventaExitosa;
 
     private string error = "";
 
@@ -220,13 +347,16 @@ else
             }
         }
 
+
         if (!AuthService.EsAdmin &&
             !AuthService.EsVendedor)
         {
             autorizado = false;
             cargando = false;
+
             return;
         }
+
 
         if (CarritoService.Items.Count == 0)
         {
@@ -237,6 +367,7 @@ else
 
             return;
         }
+
 
         try
         {
@@ -260,44 +391,58 @@ else
     {
         error = "";
 
+
         if (clienteId == 0)
         {
-            error = "Debe seleccionar un cliente.";
+            error =
+                "Debe seleccionar un cliente.";
+
             return;
         }
+
 
         if (string.IsNullOrWhiteSpace(medioPago))
         {
-            error = "Debe seleccionar un medio de pago.";
+            error =
+                "Debe seleccionar un medio de pago.";
+
             return;
         }
+
 
         if (CarritoService.Items.Count == 0)
         {
-            error = "El carrito está vacío.";
+            error =
+                "El carrito está vacío.";
+
             return;
         }
 
+
         procesando = true;
+
 
         try
         {
-            var venta = new VentaRequest
-            {
-                ClienteId = clienteId,
+            var venta =
+                new VentaRequest
+                {
+                    ClienteId =
+                        clienteId,
 
-                Detalles = CarritoService.Items
-                    .Select(item =>
-                        new DetalleVentaRequest
-                        {
-                            ProductoId =
-                                item.Producto.Id,
+                    Detalles =
+                        CarritoService.Items
+                            .Select(item =>
+                                new DetalleVentaRequest
+                                {
+                                    ProductoId =
+                                        item.Producto.Id,
 
-                            Cantidad =
-                                item.Cantidad
-                        })
-                    .ToList()
-            };
+                                    Cantidad =
+                                        item.Cantidad
+                                })
+                            .ToList()
+                };
 
 
             var resultado =
@@ -305,9 +450,11 @@ else
                     .RegistrarVentaAsync(venta);
 
 
-            ventaId = resultado.VentaId;
+            ventaId =
+                resultado.VentaId;
 
-            totalVenta = resultado.Total;
+            totalVenta =
+                resultado.Total;
 
             ventaExitosa = true;
 
@@ -326,14 +473,32 @@ else
     }
 
 
+    private string TextoCliente(
+        ClienteResponse cliente)
+    {
+        if (string.IsNullOrWhiteSpace(
+                cliente.Documento))
+        {
+            return cliente.Nombre;
+        }
+
+        return
+            $"{cliente.Nombre} - {cliente.Documento}";
+    }
+
+
     private void VolverCatalogo()
     {
-        Navigation.NavigateTo("/catalogo");
+        Navigation.NavigateTo(
+            "/catalogo"
+        );
     }
 
 
     private void VolverInicio()
     {
-        Navigation.NavigateTo("/inicio");
+        Navigation.NavigateTo(
+            "/inicio"
+        );
     }
 }

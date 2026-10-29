@@ -1,17 +1,126 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@inject AuthService AuthService
+@inject NavigationManager Navigation
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<MudThemeProvider Theme="@tema" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+
+@if (AuthService.UsuarioActual == null)
+{
+    @Body
+}
+else
+{
+    <MudLayout>
+
+        <MudAppBar Elevation="0"
+                   Color="Color.Primary">
+
+            <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                           Color="Color.Inherit"
+                           Edge="Edge.Start"
+                           OnClick="ToggleDrawer" />
+
+            <MudText Typo="Typo.h6"
+                     Class="ml-2">
+                Sistema de Ventas
+            </MudText>
+
+            <MudSpacer />
+
+            <MudText Typo="Typo.body2">
+                @AuthService.UsuarioActual.Nombre
+            </MudText>
+
+        </MudAppBar>
+
+
+        <MudDrawer @bind-Open="drawerAbierto"
+                   Variant="DrawerVariant.Mini"
+                   Breakpoint="Breakpoint.Md"
+                   Elevation="1">
+
+            <NavMenu />
+
+        </MudDrawer>
+
+
+        <MudMainContent>
+
+            <MudContainer MaxWidth="MaxWidth.ExtraLarge"
+                          Class="pa-4 pt-6">
+
+                @Body
+
+            </MudContainer>
+
+        </MudMainContent>
+
+    </MudLayout>
+}
+
+
+@code {
+
+    private bool drawerAbierto = true;
+
+
+    private readonly MudTheme tema = new()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#2563EB",
+            Secondary = "#0F172A",
+            Background = "#F8FAFC",
+            Surface = "#FFFFFF",
+            AppbarBackground = "#2563EB",
+            AppbarText = "#FFFFFF",
+            TextPrimary = "#0F172A",
+            TextSecondary = "#64748B"
+        }
+    };
+
+
+    protected override void OnInitialized()
+    {
+        AuthService.OnAuthStateChanged += Actualizar;
+
+        Navigation.LocationChanged += CambioPagina;
+    }
+
+
+    private void ToggleDrawer()
+    {
+        drawerAbierto = !drawerAbierto;
+    }
+
+
+    private void CambioPagina(
+        object? sender,
+        LocationChangedEventArgs e)
+    {
+        drawerAbierto = false;
+
+        InvokeAsync(StateHasChanged);
+    }
+
+
+    private void Actualizar()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= Actualizar;
+
+        Navigation.LocationChanged -= CambioPagina;
+    }
+}

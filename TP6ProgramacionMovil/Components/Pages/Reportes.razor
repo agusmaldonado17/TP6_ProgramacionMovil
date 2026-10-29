@@ -8,167 +8,257 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<h1>Reportes</h1>
 
-@if (cargando)
-{
-    <p>Cargando...</p>
-}
-else if (!AuthService.EsAdmin)
-{
-    <div class="alert alert-danger">
-        No tenés permisos para acceder a esta sección.
+<MudStack Spacing="4">
+
+    <div>
+
+        <MudText Typo="Typo.h4">
+            Reportes
+        </MudText>
+
+        <MudText Typo="Typo.body1"
+                 Color="Color.Secondary">
+            Generá o enviá reportes del sistema
+        </MudText>
+
     </div>
-}
-else
-{
-    @if (!string.IsNullOrEmpty(mensaje))
+
+
+    @if (cargando)
     {
-        <div class="alert alert-success">
-            @mensaje
+        <div class="d-flex justify-center pa-8">
+
+            <MudProgressCircular Indeterminate="true"
+                                 Color="Color.Primary"
+                                 Size="Size.Large" />
+
         </div>
     }
-
-    @if (!string.IsNullOrEmpty(error))
+    else if (!AuthService.EsAdmin)
     {
-        <div class="alert alert-danger">
-            @error
-        </div>
+        <MudAlert Severity="Severity.Error">
+            No tenés permisos para acceder a esta sección.
+        </MudAlert>
     }
+    else
+    {
+        @if (!string.IsNullOrEmpty(mensaje))
+        {
+            <MudAlert Severity="Severity.Success">
+                @mensaje
+            </MudAlert>
+        }
 
-    <div class="card mb-3">
-
-        <div class="card-body">
-
-            <h5>Reporte de stock</h5>
-
-            <p>
-                Estado actual del stock de productos.
-            </p>
-
-            <button class="btn btn-primary"
-                    disabled="@procesando"
-                    @onclick='() => AbrirReporte("stock")'>
-
-                Abrir PDF
-
-            </button>
-
-        </div>
-
-    </div>
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <MudAlert Severity="Severity.Error">
+                @error
+            </MudAlert>
+        }
 
 
-    <div class="card mb-3">
+        <MudGrid>
 
-        <div class="card-body">
+            <MudItem xs="12" md="4">
 
-            <h5>Reporte de ventas</h5>
+                <MudCard Style="height:100%; border-radius:18px;">
 
-            <p>
-                Listado de ventas registradas.
-            </p>
+                    <MudCardContent>
 
-            <button class="btn btn-primary"
-                    disabled="@procesando"
-                    @onclick='() => AbrirReporte("ventas")'>
+                        <MudIcon Icon="@Icons.Material.Filled.Inventory2"
+                                 Size="Size.Large"
+                                 Color="Color.Primary"
+                                 Class="mb-3" />
 
-                Abrir PDF
+                        <MudText Typo="Typo.h6">
+                            Stock
+                        </MudText>
 
-            </button>
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Estado actual del stock de productos.
+                        </MudText>
 
-        </div>
+                    </MudCardContent>
 
-    </div>
+                    <MudCardActions>
 
+                        <MudButton Color="Color.Primary"
+                                   Variant="Variant.Filled"
+                                   Disabled="@procesando"
+                                   OnClick='() => AbrirReporte("stock")'>
 
-    <div class="card mb-4">
+                            Abrir PDF
 
-        <div class="card-body">
+                        </MudButton>
 
-            <h5>Reporte de entradas</h5>
+                    </MudCardActions>
 
-            <p>
-                Entradas de mercadería registradas.
-            </p>
+                </MudCard>
 
-            <button class="btn btn-primary"
-                    disabled="@procesando"
-                    @onclick='() => AbrirReporte("entradas")'>
-
-                Abrir PDF
-
-            </button>
-
-        </div>
-
-    </div>
+            </MudItem>
 
 
-    <div class="card">
+            <MudItem xs="12" md="4">
 
-        <div class="card-body">
+                <MudCard Style="height:100%; border-radius:18px;">
 
-            <h5>Enviar reporte por correo</h5>
+                    <MudCardContent>
 
-            <div class="mb-3">
+                        <MudIcon Icon="@Icons.Material.Filled.ReceiptLong"
+                                 Size="Size.Large"
+                                 Color="Color.Primary"
+                                 Class="mb-3" />
 
-                <label class="form-label">
-                    Correo electrónico
-                </label>
+                        <MudText Typo="Typo.h6">
+                            Ventas
+                        </MudText>
 
-                <input type="email"
-                       class="form-control"
-                       placeholder="correo@ejemplo.com"
-                       @bind="email" />
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Listado de ventas registradas.
+                        </MudText>
 
-            </div>
+                    </MudCardContent>
+
+                    <MudCardActions>
+
+                        <MudButton Color="Color.Primary"
+                                   Variant="Variant.Filled"
+                                   Disabled="@procesando"
+                                   OnClick='() => AbrirReporte("ventas")'>
+
+                            Abrir PDF
+
+                        </MudButton>
+
+                    </MudCardActions>
+
+                </MudCard>
+
+            </MudItem>
 
 
-            <div class="mb-3">
+            <MudItem xs="12" md="4">
 
-                <label class="form-label">
-                    Tipo de reporte
-                </label>
+                <MudCard Style="height:100%; border-radius:18px;">
 
-                <select class="form-select"
-                        @bind="tipoReporte">
+                    <MudCardContent>
 
-                    <option value="">
+                        <MudIcon Icon="@Icons.Material.Filled.LocalShipping"
+                                 Size="Size.Large"
+                                 Color="Color.Primary"
+                                 Class="mb-3" />
+
+                        <MudText Typo="Typo.h6">
+                            Entradas
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+                            Entradas de mercadería registradas.
+                        </MudText>
+
+                    </MudCardContent>
+
+                    <MudCardActions>
+
+                        <MudButton Color="Color.Primary"
+                                   Variant="Variant.Filled"
+                                   Disabled="@procesando"
+                                   OnClick='() => AbrirReporte("entradas")'>
+
+                            Abrir PDF
+
+                        </MudButton>
+
+                    </MudCardActions>
+
+                </MudCard>
+
+            </MudItem>
+
+        </MudGrid>
+
+
+        <MudPaper Elevation="1"
+                  Class="pa-5"
+                  Style="border-radius:20px;">
+
+            <MudStack Spacing="4">
+
+                <div>
+
+                    <MudText Typo="Typo.h6">
+                        Enviar por correo
+                    </MudText>
+
+                    <MudText Typo="Typo.body2"
+                             Color="Color.Secondary">
+                        El PDF será generado y enviado como archivo adjunto
+                    </MudText>
+
+                </div>
+
+
+                <MudTextField T="string"
+                              @bind-Value="email"
+                              Label="Correo electrónico"
+                              Variant="Variant.Outlined"
+                              InputType="InputType.Email"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Email" />
+
+
+                <MudSelect T="string"
+                           @bind-Value="tipoReporte"
+                           Label="Tipo de reporte"
+                           Variant="Variant.Outlined">
+
+                    <MudSelectItem T="string"
+                                   Value="@string.Empty">
                         Seleccionar...
-                    </option>
+                    </MudSelectItem>
 
-                    <option value="stock">
+                    <MudSelectItem T="string"
+                                   Value="@("stock")">
                         Stock
-                    </option>
+                    </MudSelectItem>
 
-                    <option value="ventas">
+                    <MudSelectItem T="string"
+                                   Value="@("ventas")">
                         Ventas
-                    </option>
+                    </MudSelectItem>
 
-                    <option value="entradas">
+                    <MudSelectItem T="string"
+                                   Value="@("entradas")">
                         Entradas
-                    </option>
+                    </MudSelectItem>
 
-                </select>
-
-            </div>
+                </MudSelect>
 
 
-            <button class="btn btn-success w-100"
-                    disabled="@procesando"
-                    @onclick="EnviarReporte">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Success"
+                           Size="Size.Large"
+                           FullWidth="true"
+                           Disabled="@procesando"
+                           StartIcon="@Icons.Material.Filled.Send"
+                           OnClick="EnviarReporte">
 
-                @(procesando
-                    ? "Procesando..."
-                    : "Enviar reporte")
+                    @(procesando
+                        ? "Procesando..."
+                        : "Enviar reporte")
 
-            </button>
+                </MudButton>
 
-        </div>
+            </MudStack>
 
-    </div>
-}
+        </MudPaper>
+    }
+
+</MudStack>
 
 
 @code {

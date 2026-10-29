@@ -10,330 +10,422 @@
 @inject NavigationManager Navigation
 @inject CategoriaService CategoriaService
 
-<h1>Entrada de mercadería</h1>
 
-@if (cargando)
-{
-    <p>Cargando...</p>
-}
-else if (!AuthService.EsAdmin)
-{
-    <div class="alert alert-danger">
-        No tenés permisos para acceder a esta sección.
-    </div>
-}
-else if (entradaExitosa)
-{
-    <div class="alert alert-success">
+<MudStack Spacing="4">
 
-        <h4>Entrada registrada correctamente</h4>
+    <div>
 
-        <p>
-            Entrada N°:
-            <strong>@compraId</strong>
-        </p>
+        <MudText Typo="Typo.h4">
+            Entrada de mercadería
+        </MudText>
 
-        <p>
-            Total:
-            <strong>$@totalCompra.ToString("N2")</strong>
-        </p>
+        <MudText Typo="Typo.body1"
+                 Color="Color.Secondary">
+            Registrá productos recibidos y actualizá el stock
+        </MudText>
 
     </div>
 
-    <button class="btn btn-primary"
-            @onclick="NuevaEntrada">
-        Registrar otra entrada
-    </button>
-}
-else
-{
-    @if (!string.IsNullOrEmpty(error))
+
+    @if (cargando)
     {
-        <div class="alert alert-danger">
-            @error
+        <div class="d-flex justify-center pa-8">
+
+            <MudProgressCircular Indeterminate="true"
+                                 Color="Color.Primary"
+                                 Size="Size.Large" />
+
         </div>
     }
-
-    <div class="mb-3">
-
-        <label class="form-label">
-            Proveedor
-        </label>
-
-        <select class="form-select"
-                @bind="proveedorId">
-
-            <option value="0">
-                Seleccionar proveedor...
-            </option>
-
-            @foreach (var proveedor in proveedores)
-            {
-                <option value="@proveedor.Id">
-                    @proveedor.RazonSocial
-                </option>
-            }
-
-        </select>
-
-    </div>
-
-
-    <div class="card mb-3">
-
-        <div class="card-body">
-
-            <h5>Agregar producto</h5>
-
-            <button class="btn btn-outline-primary mb-3"
-                    @onclick="ToggleNuevoProducto">
-
-                @(mostrarNuevoProducto
-                    ? "Cancelar nuevo producto"
-                    : "Crear nuevo producto")
-
-            </button>
-
-            @if (mostrarNuevoProducto)
-            {
-                <div class="border rounded p-3 mb-4">
-
-                    <h6>Nuevo producto</h6>
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-                            Nombre
-                        </label>
-
-                        <input class="form-control"
-                               @bind="nuevoNombre" />
-
-                    </div>
-
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-                            Descripción
-                        </label>
-
-                        <input class="form-control"
-                               @bind="nuevoDescripcion" />
-
-                    </div>
-
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-                            Categoría
-                        </label>
-
-                        <select class="form-select"
-                                @bind="nuevaCategoriaId">
-
-                            <option value="0">
-                                Seleccionar categoría...
-                            </option>
-
-                            @foreach (var categoria in categorias)
-                            {
-                                <option value="@categoria.Id">
-                                    @categoria.Nombre
-                                </option>
-                            }
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-                            Precio de venta
-                        </label>
-
-                        <input type="number"
-                               min="0.01"
-                               step="0.01"
-                               class="form-control"
-                               @bind="nuevoPrecioVenta" />
-
-                    </div>
-
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-                            Punto de reposición
-                        </label>
-
-                        <input type="number"
-                               min="0"
-                               class="form-control"
-                               @bind="nuevoPuntoReposicion" />
-
-                    </div>
-
-
-                    <div class="mb-3">
-
-                        <label class="form-label">
-                            Stock máximo
-                        </label>
-
-                        <input type="number"
-                               min="1"
-                               class="form-control"
-                               @bind="nuevoStockMaximo" />
-
-                    </div>
-
-
-                    <button class="btn btn-success w-100"
-                            disabled="@creandoProducto"
-                            @onclick="CrearNuevoProducto">
-
-                        @(creandoProducto
-                            ? "Creando..."
-                            : "Crear producto")
-
-                    </button>
-
-                </div>
-            }
-
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Producto
-                </label>
-
-                <select class="form-select"
-                        @bind="productoId">
-
-                    <option value="0">
-                        Seleccionar producto...
-                    </option>
-
-                    @foreach (var producto in productos)
-                    {
-                        <option value="@producto.Id">
-                            @producto.Nombre
-                        </option>
-                    }
-
-                </select>
-
-            </div>
-
-
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Cantidad
-                </label>
-
-                <input type="number"
-                       min="1"
-                       class="form-control"
-                       @bind="cantidad" />
-
-            </div>
-
-
-            <div class="mb-3">
-
-                <label class="form-label">
-                    Precio de compra unitario
-                </label>
-
-                <input type="number"
-                       min="0.01"
-                       step="0.01"
-                       class="form-control"
-                       @bind="precioUnitario" />
-
-            </div>
-
-
-            <button class="btn btn-primary w-100"
-                    @onclick="AgregarProducto">
-                Agregar a la entrada
-            </button>
-
-        </div>
-
-    </div>
-
-
-    @if (items.Count > 0)
+    else if (!AuthService.EsAdmin)
     {
-        <h5>Productos de la entrada</h5>
+        <MudAlert Severity="Severity.Error">
+            No tenés permisos para acceder a esta sección.
+        </MudAlert>
+    }
+    else if (entradaExitosa)
+    {
+        <MudPaper Elevation="1"
+                  Class="pa-6"
+                  Style="border-radius:20px;">
 
-        @foreach (var item in items)
+            <MudStack AlignItems="AlignItems.Center"
+                      Spacing="3">
+
+                <MudAvatar Color="Color.Success"
+                           Size="Size.Large">
+
+                    <MudIcon Icon="@Icons.Material.Filled.Check" />
+
+                </MudAvatar>
+
+                <MudText Typo="Typo.h5">
+                    Entrada registrada correctamente
+                </MudText>
+
+                <MudText>
+                    Entrada N°
+                    <strong>@compraId</strong>
+                </MudText>
+
+                <MudText Typo="Typo.h4"
+                         Color="Color.Success">
+                    $@totalCompra.ToString("N2")
+                </MudText>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           OnClick="NuevaEntrada">
+
+                    Registrar otra entrada
+
+                </MudButton>
+
+            </MudStack>
+
+        </MudPaper>
+    }
+    else
+    {
+        @if (!string.IsNullOrEmpty(error))
         {
-            <div class="card mb-2">
-
-                <div class="card-body">
-
-                    <strong>
-                        @item.Producto.Nombre
-                    </strong>
-
-                    <div>
-                        Cantidad: @item.Cantidad
-                    </div>
-
-                    <div>
-                        Precio:
-                        $@item.PrecioUnitario.ToString("N2")
-                    </div>
-
-                    <div>
-                        Subtotal:
-                        <strong>
-                            $@item.Subtotal.ToString("N2")
-                        </strong>
-                    </div>
-
-                    <button class="btn btn-outline-danger mt-2"
-                            @onclick="() => EliminarItem(item)">
-                        Eliminar
-                    </button>
-
-                </div>
-
-            </div>
+            <MudAlert Severity="Severity.Error">
+                @error
+            </MudAlert>
         }
 
 
-        <div class="card mt-3">
+        <MudPaper Elevation="1"
+                  Class="pa-5"
+                  Style="border-radius:20px;">
 
-            <div class="card-body">
+            <MudStack Spacing="4">
 
-                <h4>
-                    Total:
-                    $@Total.ToString("N2")
-                </h4>
+                <MudText Typo="Typo.h6">
+                    Datos de la entrada
+                </MudText>
 
-                <button class="btn btn-success w-100"
-                        disabled="@procesando"
-                        @onclick="RegistrarEntrada">
 
-                    @(procesando
-                        ? "Registrando..."
-                        : "Registrar entrada")
+                <MudSelect T="int"
+                           Label="Proveedor"
+                           Variant="Variant.Outlined"
+                           @bind-Value="proveedorId">
 
-                </button>
+                    <MudSelectItem T="int"
+                                   Value="0">
+                        Seleccionar proveedor...
+                    </MudSelectItem>
+
+                    @foreach (var proveedor in proveedores)
+                    {
+                        <MudSelectItem T="int"
+                                       Value="@proveedor.Id">
+                            @proveedor.RazonSocial
+                        </MudSelectItem>
+                    }
+
+                </MudSelect>
+
+            </MudStack>
+
+        </MudPaper>
+
+
+        <MudPaper Elevation="1"
+                  Class="pa-5"
+                  Style="border-radius:20px;">
+
+            <MudStack Spacing="4">
+
+                <MudStack Row="true"
+                          Justify="Justify.SpaceBetween"
+                          AlignItems="AlignItems.Center">
+
+                    <MudText Typo="Typo.h6">
+                        Agregar producto
+                    </MudText>
+
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.Add"
+                               OnClick="ToggleNuevoProducto">
+
+                        @(mostrarNuevoProducto
+                            ? "Cancelar"
+                            : "Nuevo producto")
+
+                    </MudButton>
+
+                </MudStack>
+
+
+                @if (mostrarNuevoProducto)
+                {
+                    <MudPaper Elevation="0"
+                              Class="pa-4"
+                              Style="background:#F8FAFC; border-radius:16px;">
+
+                        <MudStack Spacing="3">
+
+                            <MudText Typo="Typo.subtitle1">
+                                Crear producto nuevo
+                            </MudText>
+
+
+                            <MudTextField T="string"
+                                          @bind-Value="nuevoNombre"
+                                          Label="Nombre"
+                                          Variant="Variant.Outlined" />
+
+
+                            <MudTextField T="string"
+                                          @bind-Value="nuevoDescripcion"
+                                          Label="Descripción"
+                                          Variant="Variant.Outlined" />
+
+
+                            <MudSelect T="int"
+                                       @bind-Value="nuevaCategoriaId"
+                                       Label="Categoría"
+                                       Variant="Variant.Outlined">
+
+                                <MudSelectItem T="int"
+                                               Value="0">
+                                    Seleccionar categoría...
+                                </MudSelectItem>
+
+                                @foreach (var categoria in categorias)
+                                {
+                                    <MudSelectItem T="int"
+                                                   Value="@categoria.Id">
+                                        @categoria.Nombre
+                                    </MudSelectItem>
+                                }
+
+                            </MudSelect>
+
+
+                            <MudGrid>
+
+                                <MudItem xs="12" sm="4">
+
+                                    <MudNumericField T="decimal"
+                                                     @bind-Value="nuevoPrecioVenta"
+                                                     Label="Precio de venta"
+                                                     Variant="Variant.Outlined" />
+
+                                </MudItem>
+
+
+                                <MudItem xs="12" sm="4">
+
+                                    <MudNumericField T="int"
+                                                     @bind-Value="nuevoPuntoReposicion"
+                                                     Label="Punto de reposición"
+                                                     Variant="Variant.Outlined" />
+
+                                </MudItem>
+
+
+                                <MudItem xs="12" sm="4">
+
+                                    <MudNumericField T="int"
+                                                     @bind-Value="nuevoStockMaximo"
+                                                     Label="Stock máximo"
+                                                     Variant="Variant.Outlined" />
+
+                                </MudItem>
+
+                            </MudGrid>
+
+
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Success"
+                                       FullWidth="true"
+                                       Disabled="@creandoProducto"
+                                       OnClick="CrearNuevoProducto">
+
+                                @(creandoProducto
+                                    ? "Creando..."
+                                    : "Crear producto")
+
+                            </MudButton>
+
+                        </MudStack>
+
+                    </MudPaper>
+                }
+
+
+                <MudSelect T="int"
+                           @bind-Value="productoId"
+                           Label="Producto"
+                           Variant="Variant.Outlined">
+
+                    <MudSelectItem T="int"
+                                   Value="0">
+                        Seleccionar producto...
+                    </MudSelectItem>
+
+                    @foreach (var producto in productos)
+                    {
+                        <MudSelectItem T="int"
+                                       Value="@producto.Id">
+                            @producto.Nombre
+                        </MudSelectItem>
+                    }
+
+                </MudSelect>
+
+
+                <MudGrid>
+
+                    <MudItem xs="12" sm="6">
+
+                        <MudNumericField T="int"
+                                         @bind-Value="cantidad"
+                                         Label="Cantidad"
+                                         Variant="Variant.Outlined" />
+
+                    </MudItem>
+
+
+                    <MudItem xs="12" sm="6">
+
+                        <MudNumericField T="decimal"
+                                         @bind-Value="precioUnitario"
+                                         Label="Precio de compra unitario"
+                                         Variant="Variant.Outlined" />
+
+                    </MudItem>
+
+                </MudGrid>
+
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.AddShoppingCart"
+                           OnClick="AgregarProducto">
+
+                    Agregar a la entrada
+
+                </MudButton>
+
+            </MudStack>
+
+        </MudPaper>
+
+
+        @if (items.Count > 0)
+        {
+            <div>
+
+                <MudText Typo="Typo.h6"
+                         Class="mb-3">
+                    Productos de la entrada
+                </MudText>
+
+
+                <MudStack Spacing="2">
+
+                    @foreach (var item in items)
+                    {
+                        <MudPaper Elevation="1"
+                                  Class="pa-4"
+                                  Style="border-radius:16px;">
+
+                            <MudStack Row="true"
+                                      Justify="Justify.SpaceBetween"
+                                      AlignItems="AlignItems.Center">
+
+                                <div>
+
+                                    <MudText Typo="Typo.subtitle1">
+                                        @item.Producto.Nombre
+                                    </MudText>
+
+                                    <MudText Typo="Typo.body2"
+                                             Color="Color.Secondary">
+
+                                        @item.Cantidad x
+                                        $@item.PrecioUnitario.ToString("N2")
+
+                                    </MudText>
+
+                                    <MudText Typo="Typo.subtitle2">
+                                        Subtotal:
+                                        $@item.Subtotal.ToString("N2")
+                                    </MudText>
+
+                                </div>
+
+
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                               Color="Color.Error"
+                                               OnClick="@(() => EliminarItem(item))" />
+
+                            </MudStack>
+
+                        </MudPaper>
+                    }
+
+                </MudStack>
 
             </div>
 
-        </div>
+
+            <MudPaper Elevation="2"
+                      Class="pa-5"
+                      Style="border-radius:20px;">
+
+                <MudStack Spacing="3">
+
+                    <MudStack Row="true"
+                              Justify="Justify.SpaceBetween"
+                              AlignItems="AlignItems.Center">
+
+                        <MudText Typo="Typo.h6">
+                            Total
+                        </MudText>
+
+                        <MudText Typo="Typo.h4"
+                                 Color="Color.Primary">
+                            $@Total.ToString("N2")
+                        </MudText>
+
+                    </MudStack>
+
+
+                    @if (proveedorId == 0)
+                    {
+                        <MudAlert Severity="Severity.Warning">
+                            Seleccioná un proveedor para registrar la entrada.
+                        </MudAlert>
+                    }
+
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Success"
+                               Size="Size.Large"
+                               FullWidth="true"
+                               Disabled="@(procesando || proveedorId == 0)"
+                               StartIcon="@Icons.Material.Filled.Save"
+                               OnClick="RegistrarEntrada">
+
+                        @(procesando
+                            ? "Registrando..."
+                            : "Registrar entrada")
+
+                    </MudButton>
+
+                </MudStack>
+
+            </MudPaper>
+        }
     }
-}
+
+</MudStack>
 
 
 @code {
@@ -357,8 +449,6 @@ else
 
     private int compraId;
     private decimal totalCompra;
-
-
 
     private bool mostrarNuevoProducto;
 
@@ -443,19 +533,25 @@ else
 
         if (productoId == 0)
         {
-            error = "Debe seleccionar un producto.";
+            error =
+                "Debe seleccionar un producto.";
+
             return;
         }
 
         if (cantidad <= 0)
         {
-            error = "La cantidad debe ser mayor a cero.";
+            error =
+                "La cantidad debe ser mayor a cero.";
+
             return;
         }
 
         if (precioUnitario <= 0)
         {
-            error = "El precio debe ser mayor a cero.";
+            error =
+                "El precio debe ser mayor a cero.";
+
             return;
         }
 
@@ -475,7 +571,8 @@ else
         if (existente != null)
         {
             existente.Cantidad += cantidad;
-            existente.PrecioUnitario = precioUnitario;
+            existente.PrecioUnitario =
+                precioUnitario;
         }
         else
         {
@@ -484,7 +581,8 @@ else
                 {
                     Producto = producto,
                     Cantidad = cantidad,
-                    PrecioUnitario = precioUnitario
+                    PrecioUnitario =
+                        precioUnitario
                 }
             );
         }
@@ -495,7 +593,8 @@ else
     }
 
 
-    private void EliminarItem(ItemEntrada item)
+    private void EliminarItem(
+        ItemEntrada item)
     {
         items.Remove(item);
     }
@@ -507,13 +606,17 @@ else
 
         if (proveedorId == 0)
         {
-            error = "Debe seleccionar un proveedor.";
+            error =
+                "Debe seleccionar un proveedor.";
+
             return;
         }
 
         if (items.Count == 0)
         {
-            error = "Debe agregar al menos un producto.";
+            error =
+                "Debe agregar al menos un producto.";
+
             return;
         }
 
@@ -521,27 +624,39 @@ else
 
         try
         {
-            var compra = new CompraRequest
-            {
-                ProveedorId = proveedorId,
+            var compra =
+                new CompraRequest
+                {
+                    ProveedorId =
+                        proveedorId,
 
-                Detalles = items
-                    .Select(i =>
-                        new DetalleCompraRequest
-                        {
-                            ProductoId = i.Producto.Id,
-                            Cantidad = i.Cantidad,
-                            PrecioUnitario = i.PrecioUnitario
-                        })
-                    .ToList()
-            };
+                    Detalles =
+                        items.Select(i =>
+                            new DetalleCompraRequest
+                            {
+                                ProductoId =
+                                    i.Producto.Id,
+
+                                Cantidad =
+                                    i.Cantidad,
+
+                                PrecioUnitario =
+                                    i.PrecioUnitario
+                            })
+                        .ToList()
+                };
 
             var resultado =
                 await CompraService
-                    .RegistrarCompraAsync(compra);
+                    .RegistrarCompraAsync(
+                        compra
+                    );
 
-            compraId = resultado.CompraId;
-            totalCompra = resultado.Total;
+            compraId =
+                resultado.CompraId;
+
+            totalCompra =
+                resultado.Total;
 
             entradaExitosa = true;
         }
@@ -570,17 +685,20 @@ else
         error = "";
     }
 
+
     private void ToggleNuevoProducto()
     {
         mostrarNuevoProducto =
             !mostrarNuevoProducto;
     }
 
+
     private async Task CrearNuevoProducto()
     {
         error = "";
 
-        if (string.IsNullOrWhiteSpace(nuevoNombre))
+        if (string.IsNullOrWhiteSpace(
+                nuevoNombre))
         {
             error =
                 "Debe ingresar el nombre del producto.";
@@ -619,15 +737,15 @@ else
             var request =
                 new ProductoRequest
                 {
-                    Nombre = nuevoNombre,
-                    Descripcion = nuevoDescripcion,
+                    Nombre =
+                        nuevoNombre,
+
+                    Descripcion =
+                        nuevoDescripcion,
 
                     PrecioVenta =
                         nuevoPrecioVenta,
 
-                    // IMPORTANTE:
-                    // El stock entra después mediante
-                    // la entrada de mercadería.
                     StockActual = 0,
 
                     PuntoReposicion =
@@ -645,19 +763,17 @@ else
 
             var nuevo =
                 await ProductoService
-                    .CrearProductoAsync(request);
-
+                    .CrearProductoAsync(
+                        request
+                    );
 
             productos.Add(nuevo);
 
+            productoId =
+                nuevo.Id;
 
-            // Lo dejamos seleccionado automáticamente
-            // para agregarlo a esta misma entrada.
-            productoId = nuevo.Id;
-
-
-            mostrarNuevoProducto = false;
-
+            mostrarNuevoProducto =
+                false;
 
             nuevoNombre = "";
             nuevoDescripcion = "";

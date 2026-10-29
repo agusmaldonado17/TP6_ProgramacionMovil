@@ -7,116 +7,199 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<h1>Historial de entradas</h1>
 
-@if (cargando)
-{
-    <p>Cargando...</p>
-}
-else if (!AuthService.EsAdmin)
-{
-    <div class="alert alert-danger">
-        No tenés permisos para acceder.
+<MudStack Spacing="4">
+
+    <div>
+
+        <MudText Typo="Typo.h4">
+            Historial de entradas
+        </MudText>
+
+        <MudText Typo="Typo.body1"
+                 Color="Color.Secondary">
+            Consultá los ingresos de mercadería registrados
+        </MudText>
+
     </div>
-}
-else if (!string.IsNullOrEmpty(error))
-{
-    <div class="alert alert-danger">
-        @error
-    </div>
-}
-else if (compras.Count == 0)
-{
-    <div class="alert alert-info">
-        No hay entradas registradas.
-    </div>
-}
-else
-{
-    @foreach (var compra in compras)
+
+
+    @if (cargando)
     {
-        <div class="card mb-3">
+        <div class="d-flex justify-center pa-8">
 
-            <div class="card-body">
-
-                <h5>
-                    Entrada N° @compra.Id
-                </h5>
-
-                <p class="mb-1">
-                    Fecha:
-                    @compra.Fecha.ToString("dd/MM/yyyy HH:mm")
-                </p>
-
-                <p class="mb-1">
-                    Proveedor:
-                    <strong>@compra.ProveedorNombre</strong>
-                </p>
-
-                <p class="mb-1">
-                    Registrada por:
-                    @compra.UsuarioNombre
-                </p>
-
-                <p>
-                    Total:
-                    <strong>
-                        $@compra.Total.ToString("N2")
-                    </strong>
-                </p>
-
-                <hr />
-
-                @foreach (var detalle in compra.Detalles)
-                {
-                    <div class="mb-2">
-
-                        <strong>
-                            @detalle.ProductoNombre
-                        </strong>
-
-                        <div>
-                            @detalle.Cantidad x
-                            $@detalle.PrecioUnitario.ToString("N2")
-                        </div>
-
-                        <div>
-                            Subtotal:
-                            $@detalle.Subtotal.ToString("N2")
-                        </div>
-
-                    </div>
-                }
-
-            </div>
+            <MudProgressCircular Indeterminate="true"
+                                 Color="Color.Primary"
+                                 Size="Size.Large" />
 
         </div>
     }
+    else if (!AuthService.EsAdmin)
+    {
+        <MudAlert Severity="Severity.Error">
+            No tenés permisos para acceder.
+        </MudAlert>
+    }
+    else if (!string.IsNullOrEmpty(error))
+    {
+        <MudAlert Severity="Severity.Error">
+            @error
+        </MudAlert>
+    }
+    else if (compras.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">
+            No hay entradas registradas.
+        </MudAlert>
+    }
+    else
+    {
+        @foreach (var compra in compras)
+        {
+            <MudPaper Elevation="1"
+                      Class="pa-5"
+                      Style="border-radius:18px;">
 
-    <div class="d-flex justify-content-between align-items-center">
+                <MudStack Spacing="3">
 
-        <button class="btn btn-outline-primary"
-                disabled="@(paginaActual <= 1)"
-                @onclick="Anterior">
+                    <MudStack Row="true"
+                              Justify="Justify.SpaceBetween"
+                              AlignItems="AlignItems.Center">
 
-            Anterior
+                        <div>
 
-        </button>
+                            <MudText Typo="Typo.h6">
+                                Entrada N° @compra.Id
+                            </MudText>
 
-        <span>
-            Página @paginaActual de @totalPaginas
-        </span>
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                @compra.Fecha.ToString("dd/MM/yyyy HH:mm")
+                            </MudText>
 
-        <button class="btn btn-outline-primary"
-                disabled="@(paginaActual >= totalPaginas)"
-                @onclick="Siguiente">
+                        </div>
 
-            Siguiente
 
-        </button>
+                        <MudText Typo="Typo.h5"
+                                 Color="Color.Primary">
+                            $@compra.Total.ToString("N2")
+                        </MudText>
 
-    </div>
-}
+                    </MudStack>
+
+
+                    <MudDivider />
+
+
+                    <MudGrid>
+
+                        <MudItem xs="12" sm="6">
+
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                Proveedor
+                            </MudText>
+
+                            <MudText>
+                                @compra.ProveedorNombre
+                            </MudText>
+
+                        </MudItem>
+
+
+                        <MudItem xs="12" sm="6">
+
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                Registrada por
+                            </MudText>
+
+                            <MudText>
+                                @compra.UsuarioNombre
+                            </MudText>
+
+                        </MudItem>
+
+                    </MudGrid>
+
+
+                    <MudDivider />
+
+
+                    @foreach (var detalle in compra.Detalles)
+                    {
+                        <MudPaper Elevation="0"
+                                  Class="pa-3"
+                                  Style="background:#F8FAFC; border-radius:12px;">
+
+                            <MudStack Row="true"
+                                      Justify="Justify.SpaceBetween">
+
+                                <div>
+
+                                    <MudText>
+                                        @detalle.ProductoNombre
+                                    </MudText>
+
+                                    <MudText Typo="Typo.caption"
+                                             Color="Color.Secondary">
+
+                                        @detalle.Cantidad x
+                                        $@detalle.PrecioUnitario.ToString("N2")
+
+                                    </MudText>
+
+                                </div>
+
+
+                                <MudText Typo="Typo.subtitle2">
+                                    $@detalle.Subtotal.ToString("N2")
+                                </MudText>
+
+                            </MudStack>
+
+                        </MudPaper>
+                    }
+
+                </MudStack>
+
+            </MudPaper>
+        }
+
+
+        <MudPaper Elevation="0"
+                  Class="pa-4"
+                  Style="border-radius:18px;">
+
+            <MudStack Row="true"
+                      Justify="Justify.SpaceBetween"
+                      AlignItems="AlignItems.Center">
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           Disabled="@(paginaActual <= 1)"
+                           OnClick="Anterior">
+                    Anterior
+                </MudButton>
+
+                <MudText>
+                    Página @paginaActual de @totalPaginas
+                </MudText>
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           Disabled="@(paginaActual >= totalPaginas)"
+                           OnClick="Siguiente">
+                    Siguiente
+                </MudButton>
+
+            </MudStack>
+
+        </MudPaper>
+    }
+
+</MudStack>
+
 
 @code {
 
@@ -175,6 +258,7 @@ else
             {
                 error =
                     "No se pudo cargar el historial.";
+
                 return;
             }
 
@@ -204,7 +288,6 @@ else
             return;
 
         paginaActual--;
-
         await Cargar();
     }
 
@@ -215,7 +298,6 @@ else
             return;
 
         paginaActual++;
-
         await Cargar();
     }
 }

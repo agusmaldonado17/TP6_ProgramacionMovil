@@ -3,22 +3,284 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-@using TP6ProgramacionMovil.Services
-
-<h1>Inicio</h1>
 
 @if (AuthService.UsuarioActual != null)
 {
-    <p>
-        Bienvenido
-        <strong>@AuthService.UsuarioActual.Nombre</strong>
-    </p>
+    <MudStack Spacing="4">
 
-    <p>
-        Rol:
-        <strong>@AuthService.UsuarioActual.Rol</strong>
-    </p>
+        <MudPaper Elevation="0"
+                  Class="pa-6"
+                  Style="border-radius: 20px; background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white;">
+
+            <MudText Typo="Typo.h4"
+                     Style="color: white;">
+
+                Hola, @AuthService.UsuarioActual.Nombre
+
+            </MudText>
+
+            <MudText Typo="Typo.body1"
+                     Style="color: rgba(255,255,255,.85);">
+
+                Bienvenido al Sistema de Ventas
+
+            </MudText>
+
+            <MudChip T="string"
+                     Color="Color.Default"
+                     Variant="Variant.Filled"
+                     Class="mt-4">
+
+                @AuthService.UsuarioActual.Rol
+
+            </MudChip>
+
+        </MudPaper>
+
+
+        <div>
+
+            <MudText Typo="Typo.h5"
+                     Class="mb-1">
+
+                Accesos rápidos
+
+            </MudText>
+
+            <MudText Typo="Typo.body2"
+                     Color="Color.Secondary"
+                     Class="mb-4">
+
+                Elegí una opción para comenzar
+
+            </MudText>
+
+        </div>
+
+
+        <MudGrid>
+
+            <MudItem xs="12"
+                     sm="6"
+                     md="4">
+
+                <MudCard Style="border-radius: 18px; height: 100%;">
+
+                    <MudCardContent>
+
+                        <MudIcon Icon="@Icons.Material.Filled.Storefront"
+                                 Color="Color.Primary"
+                                 Size="Size.Large"
+                                 Class="mb-3" />
+
+                        <MudText Typo="Typo.h6">
+                            Catálogo
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+
+                            Consultá productos, precios y stock disponible.
+
+                        </MudText>
+
+                    </MudCardContent>
+
+                    <MudCardActions>
+
+                        <MudButton Color="Color.Primary"
+                                   OnClick='() => IrA("/catalogo")'>
+
+                            Ver catálogo
+
+                        </MudButton>
+
+                    </MudCardActions>
+
+                </MudCard>
+
+            </MudItem>
+
+
+            <MudItem xs="12"
+                     sm="6"
+                     md="4">
+
+                <MudCard Style="border-radius: 18px; height: 100%;">
+
+                    <MudCardContent>
+
+                        <MudIcon Icon="@Icons.Material.Filled.ShoppingCart"
+                                 Color="Color.Primary"
+                                 Size="Size.Large"
+                                 Class="mb-3" />
+
+                        <MudText Typo="Typo.h6">
+                            Carrito
+                        </MudText>
+
+                        <MudText Typo="Typo.body2"
+                                 Color="Color.Secondary">
+
+                            Revisá los productos seleccionados para la compra.
+
+                        </MudText>
+
+                    </MudCardContent>
+
+                    <MudCardActions>
+
+                        <MudButton Color="Color.Primary"
+                                   OnClick='() => IrA("/carrito")'>
+
+                            Abrir carrito
+
+                        </MudButton>
+
+                    </MudCardActions>
+
+                </MudCard>
+
+            </MudItem>
+
+
+            @if (AuthService.EsAdmin ||
+                 AuthService.EsVendedor)
+            {
+                <MudItem xs="12"
+                         sm="6"
+                         md="4">
+
+                    <MudCard Style="border-radius: 18px; height: 100%;">
+
+                        <MudCardContent>
+
+                            <MudIcon Icon="@Icons.Material.Filled.ReceiptLong"
+                                     Color="Color.Primary"
+                                     Size="Size.Large"
+                                     Class="mb-3" />
+
+                            <MudText Typo="Typo.h6">
+                                Ventas
+                            </MudText>
+
+                            <MudText Typo="Typo.body2"
+                                     Color="Color.Secondary">
+
+                                Consultá el historial de ventas realizadas.
+
+                            </MudText>
+
+                        </MudCardContent>
+
+                        <MudCardActions>
+
+                            <MudButton Color="Color.Primary"
+                                       OnClick='() => IrA("/historial-ventas")'>
+
+                                Ver ventas
+
+                            </MudButton>
+
+                        </MudCardActions>
+
+                    </MudCard>
+
+                </MudItem>
+            }
+
+
+            @if (AuthService.EsAdmin)
+            {
+                <MudItem xs="12"
+                         sm="6"
+                         md="4">
+
+                    <MudCard Style="border-radius: 18px; height: 100%;">
+
+                        <MudCardContent>
+
+                            <MudIcon Icon="@Icons.Material.Filled.Inventory"
+                                     Color="Color.Primary"
+                                     Size="Size.Large"
+                                     Class="mb-3" />
+
+                            <MudText Typo="Typo.h6">
+                                Entrada de mercadería
+                            </MudText>
+
+                            <MudText Typo="Typo.body2"
+                                     Color="Color.Secondary">
+
+                                Registrá compras y actualizá el stock.
+
+                            </MudText>
+
+                        </MudCardContent>
+
+                        <MudCardActions>
+
+                            <MudButton Color="Color.Primary"
+                                       OnClick='() => IrA("/entrada-mercaderia")'>
+
+                                Registrar entrada
+
+                            </MudButton>
+
+                        </MudCardActions>
+
+                    </MudCard>
+
+                </MudItem>
+
+
+                <MudItem xs="12"
+                         sm="6"
+                         md="4">
+
+                    <MudCard Style="border-radius: 18px; height: 100%;">
+
+                        <MudCardContent>
+
+                            <MudIcon Icon="@Icons.Material.Filled.Description"
+                                     Color="Color.Primary"
+                                     Size="Size.Large"
+                                     Class="mb-3" />
+
+                            <MudText Typo="Typo.h6">
+                                Reportes
+                            </MudText>
+
+                            <MudText Typo="Typo.body2"
+                                     Color="Color.Secondary">
+
+                                Generá y enviá reportes PDF del sistema.
+
+                            </MudText>
+
+                        </MudCardContent>
+
+                        <MudCardActions>
+
+                            <MudButton Color="Color.Primary"
+                                       OnClick='() => IrA("/reportes")'>
+
+                                Abrir reportes
+
+                            </MudButton>
+
+                        </MudCardActions>
+
+                    </MudCard>
+
+                </MudItem>
+            }
+
+        </MudGrid>
+
+    </MudStack>
 }
+
 
 @code {
 
@@ -37,5 +299,11 @@
                 );
             }
         }
+    }
+
+
+    private void IrA(string ruta)
+    {
+        Navigation.NavigateTo(ruta);
     }
 }

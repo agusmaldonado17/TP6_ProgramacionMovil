@@ -7,127 +7,215 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<h1>Historial de ventas</h1>
 
-<div class="mb-3">
-    <div class="input-group">
+<MudStack Spacing="4">
 
-        <input class="form-control"
-               placeholder="Buscar por cliente..."
-               @bind="busqueda" />
+    <div>
+        <MudText Typo="Typo.h4">
+            Historial de ventas
+        </MudText>
 
-        <button class="btn btn-primary"
-                @onclick="Buscar">
-            Buscar
-        </button>
-
+        <MudText Typo="Typo.body1"
+                 Color="Color.Secondary">
+            Consultá las ventas registradas
+        </MudText>
     </div>
-</div>
 
-@if (cargando)
-{
-    <p>Cargando...</p>
-}
-else if (!AuthService.EsAdmin && !AuthService.EsVendedor)
-{
-    <div class="alert alert-danger">
-        No tenés permisos para acceder.
-    </div>
-}
-else if (!string.IsNullOrEmpty(error))
-{
-    <div class="alert alert-danger">
-        @error
-    </div>
-}
-else if (ventas.Count == 0)
-{
-    <div class="alert alert-info">
-        No se encontraron ventas.
-    </div>
-}
-else
-{
-    @foreach (var venta in ventas)
+
+    <MudPaper Elevation="0"
+              Class="pa-4"
+              Style="border-radius: 18px;">
+
+        <MudStack Row="true" Spacing="2">
+
+            <MudTextField T="string"
+                          @bind-Value="busqueda"
+                          Placeholder="Buscar por cliente..."
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          FullWidth="true" />
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       OnClick="Buscar">
+                Buscar
+            </MudButton>
+
+        </MudStack>
+
+    </MudPaper>
+
+
+    @if (cargando)
     {
-        <div class="card mb-3">
-
-            <div class="card-body">
-
-                <h5>
-                    Venta N° @venta.Id
-                </h5>
-
-                <div>
-                    Fecha:
-                    @venta.Fecha.ToString("dd/MM/yyyy HH:mm")
-                </div>
-
-                <div>
-                    Cliente:
-                    <strong>@venta.NombreCliente</strong>
-                </div>
-
-                <div>
-                    Registrada por:
-                    @venta.NombreUsuario
-                </div>
-
-                <div class="mt-2">
-                    Total:
-                    <strong>
-                        $@venta.Total.ToString("N2")
-                    </strong>
-                </div>
-
-                <hr />
-
-                @foreach (var detalle in venta.Detalles)
-                {
-                    <div class="mb-2">
-
-                        <strong>
-                            @detalle.NombreProducto
-                        </strong>
-
-                        <div>
-                            @detalle.Cantidad x
-                            $@detalle.PrecioUnitario.ToString("N2")
-                        </div>
-
-                        <div>
-                            Subtotal:
-                            $@detalle.Subtotal.ToString("N2")
-                        </div>
-
-                    </div>
-                }
-
-            </div>
-
+        <div class="d-flex justify-center pa-8">
+            <MudProgressCircular Indeterminate="true"
+                                 Color="Color.Primary"
+                                 Size="Size.Large" />
         </div>
     }
+    else if (!AuthService.EsAdmin &&
+             !AuthService.EsVendedor)
+    {
+        <MudAlert Severity="Severity.Error">
+            No tenés permisos para acceder.
+        </MudAlert>
+    }
+    else if (!string.IsNullOrEmpty(error))
+    {
+        <MudAlert Severity="Severity.Error">
+            @error
+        </MudAlert>
+    }
+    else if (ventas.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">
+            No se encontraron ventas.
+        </MudAlert>
+    }
+    else
+    {
+        @foreach (var venta in ventas)
+        {
+            <MudPaper Elevation="1"
+                      Class="pa-5"
+                      Style="border-radius: 18px;">
 
-    <div class="d-flex justify-content-between align-items-center">
+                <MudStack Spacing="3">
 
-        <button class="btn btn-outline-primary"
-                disabled="@(paginaActual <= 1)"
-                @onclick="Anterior">
-            Anterior
-        </button>
+                    <MudStack Row="true"
+                              Justify="Justify.SpaceBetween"
+                              AlignItems="AlignItems.Center">
 
-        <span>
-            Página @paginaActual de @totalPaginas
-        </span>
+                        <div>
+                            <MudText Typo="Typo.h6">
+                                Venta N° @venta.Id
+                            </MudText>
 
-        <button class="btn btn-outline-primary"
-                disabled="@(paginaActual >= totalPaginas)"
-                @onclick="Siguiente">
-            Siguiente
-        </button>
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                @venta.Fecha.ToString("dd/MM/yyyy HH:mm")
+                            </MudText>
+                        </div>
 
-    </div>
-}
+                        <MudText Typo="Typo.h5"
+                                 Color="Color.Primary">
+                            $@venta.Total.ToString("N2")
+                        </MudText>
+
+                    </MudStack>
+
+
+                    <MudDivider />
+
+
+                    <MudGrid>
+
+                        <MudItem xs="12" sm="6">
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                Cliente
+                            </MudText>
+
+                            <MudText Typo="Typo.body1">
+                                @venta.NombreCliente
+                            </MudText>
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6">
+                            <MudText Typo="Typo.caption"
+                                     Color="Color.Secondary">
+                                Registrada por
+                            </MudText>
+
+                            <MudText Typo="Typo.body1">
+                                @venta.NombreUsuario
+                            </MudText>
+                        </MudItem>
+
+                    </MudGrid>
+
+
+                    <MudDivider />
+
+
+                    <MudText Typo="Typo.subtitle2">
+                        Productos
+                    </MudText>
+
+
+                    @foreach (var detalle in venta.Detalles)
+                    {
+                        <MudPaper Elevation="0"
+                                  Class="pa-3"
+                                  Style="background:#F8FAFC; border-radius:12px;">
+
+                            <MudStack Row="true"
+                                      Justify="Justify.SpaceBetween">
+
+                                <div>
+                                    <MudText Typo="Typo.body1">
+                                        @detalle.NombreProducto
+                                    </MudText>
+
+                                    <MudText Typo="Typo.caption"
+                                             Color="Color.Secondary">
+                                        @detalle.Cantidad x
+                                        $@detalle.PrecioUnitario.ToString("N2")
+                                    </MudText>
+                                </div>
+
+                                <MudText Typo="Typo.subtitle2">
+                                    $@detalle.Subtotal.ToString("N2")
+                                </MudText>
+
+                            </MudStack>
+
+                        </MudPaper>
+                    }
+
+                </MudStack>
+
+            </MudPaper>
+        }
+
+
+        <MudPaper Elevation="0"
+                  Class="pa-4"
+                  Style="border-radius: 18px;">
+
+            <MudStack Row="true"
+                      Justify="Justify.SpaceBetween"
+                      AlignItems="AlignItems.Center">
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           Disabled="@(paginaActual <= 1)"
+                           StartIcon="@Icons.Material.Filled.ChevronLeft"
+                           OnClick="Anterior">
+                    Anterior
+                </MudButton>
+
+                <MudText>
+                    Página @paginaActual de @totalPaginas
+                </MudText>
+
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           Disabled="@(paginaActual >= totalPaginas)"
+                           EndIcon="@Icons.Material.Filled.ChevronRight"
+                           OnClick="Siguiente">
+                    Siguiente
+                </MudButton>
+
+            </MudStack>
+
+        </MudPaper>
+    }
+
+</MudStack>
+
 
 @code {
 
@@ -221,7 +309,6 @@ else
             return;
 
         paginaActual--;
-
         await Cargar();
     }
 
@@ -232,7 +319,6 @@ else
             return;
 
         paginaActual++;
-
         await Cargar();
     }
 }

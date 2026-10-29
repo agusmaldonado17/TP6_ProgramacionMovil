@@ -6,182 +6,174 @@
 
 @using TP6ProgramacionMovil.Services
 
-<div class="top-row navbar navbar-dark">
-    <div class="nav-header">
 
-        <span class="navbar-brand">
-            TP6
-        </span>
+@if (AuthService.UsuarioActual != null)
+{
+    <MudDrawerHeader Class="pa-4">
 
-        <button class="navbar-toggler"
-                type="button"
-                title="Menú"
-                @onclick="ToggleNavMenu">
+        <MudStack Row="true"
+                  AlignItems="AlignItems.Center"
+                  Spacing="2">
 
-            <span class="navbar-toggler-icon"></span>
+            <MudAvatar Color="Color.Primary"
+                       Size="Size.Medium">
 
-        </button>
+                @InicialUsuario
 
-    </div>
-</div>
+            </MudAvatar>
 
-<div class="nav-scrollable @(menuAbierto ? "open" : "closed")">
+            <div>
 
-    <nav class="flex-column">
+                <MudText Typo="Typo.subtitle2">
+                    @AuthService.UsuarioActual.Nombre
+                </MudText>
 
-        @if (AuthService.UsuarioActual != null)
-        {
-            <div class="px-3 py-3 text-white">
-
-                <div>
-                    <strong>
-                        @AuthService.UsuarioActual.Nombre
-                    </strong>
-                </div>
-
-                <small>
+                <MudText Typo="Typo.caption"
+                         Color="Color.Secondary">
                     @AuthService.UsuarioActual.Rol
-                </small>
+                </MudText>
 
             </div>
 
-            <div class="nav-item px-3">
+        </MudStack>
 
-                <NavLink class="nav-link"
-                         href="inicio"
-                         @onclick="CerrarMenu">
-
-                    Inicio
-
-                </NavLink>
-
-            </div>
-
-            <div class="nav-item px-3">
-                <NavLink class="nav-link"
-                         href="catalogo"
-                         @onclick="CerrarMenu">
-
-                    Catálogo
-
-                </NavLink>
-            </div>
-
-            <div class="nav-item px-3">
-
-                <NavLink class="nav-link"
-                         href="carrito"
-                         @onclick="CerrarMenu">
-
-                    Carrito (@CarritoService.CantidadTotal)
-
-                </NavLink>
-
-            </div>
+    </MudDrawerHeader>
 
 
-            @if (AuthService.EsAdmin || AuthService.EsVendedor)
-            {
-                <div class="nav-item px-3">
-
-                    <NavLink class="nav-link"
-                             href="historial-ventas"
-                             @onclick="CerrarMenu">
-
-                        Historial de ventas
-
-                    </NavLink>
-
-                </div>
-            }
+    <MudDivider />
 
 
-            @if (AuthService.EsAdmin)
-            {
-                <div class="nav-item px-3">
+    <MudNavMenu Dense="true"
+                Color="Color.Primary"
+                Class="pa-2">
 
-                    <NavLink class="nav-link"
-                             href="entrada-mercaderia"
-                             @onclick="CerrarMenu">
+        <MudNavLink Href="/inicio"
+                    Icon="@Icons.Material.Filled.Home">
 
-                        Entrada de mercadería
+            Inicio
 
-                    </NavLink>
+        </MudNavLink>
 
-                </div>
 
-                <div class="nav-item px-3">
+        <MudNavLink Href="/catalogo"
+                    Icon="@Icons.Material.Filled.Storefront">
 
-                    <NavLink class="nav-link"
-                             href="historial-entradas"
-                             @onclick="CerrarMenu">
+            Catálogo
 
-                        Historial de entradas
+        </MudNavLink>
 
-                    </NavLink>
 
-                </div>
+        <MudNavLink Href="/carrito"
+                    Icon="@Icons.Material.Filled.ShoppingCart">
 
-                <div class="nav-item px-3">
+            Carrito (@CarritoService.CantidadTotal)
 
-                    <NavLink class="nav-link"
-                             href="reportes"
-                             @onclick="CerrarMenu">
+        </MudNavLink>
 
-                        Reportes
 
-                    </NavLink>
+        @if (AuthService.EsAdmin ||
+             AuthService.EsVendedor)
+        {
+            <MudDivider Class="my-2" />
 
-                </div>
+            <MudText Typo="Typo.overline"
+                     Color="Color.Secondary"
+                     Class="px-4 py-2">
 
-            }
+                Ventas
 
-            <div class="nav-item px-3 mt-3">
+            </MudText>
 
-                <button class="btn btn-outline-light w-100"
-                        @onclick="CerrarSesion">
 
-                    Cerrar sesión
+            <MudNavLink Href="/historial-ventas"
+                        Icon="@Icons.Material.Filled.ReceiptLong">
 
-                </button>
+                Historial de ventas
 
-            </div>
+            </MudNavLink>
         }
 
-    </nav>
 
-</div>
+        @if (AuthService.EsAdmin)
+        {
+            <MudDivider Class="my-2" />
+
+            <MudText Typo="Typo.overline"
+                     Color="Color.Secondary"
+                     Class="px-4 py-2">
+
+                Administración
+
+            </MudText>
+
+
+            <MudNavLink Href="/entrada-mercaderia"
+                        Icon="@Icons.Material.Filled.AddBox">
+
+                Entrada de mercadería
+
+            </MudNavLink>
+
+
+            <MudNavLink Href="/historial-entradas"
+                        Icon="@Icons.Material.Filled.History">
+
+                Historial de entradas
+
+            </MudNavLink>
+
+
+            <MudNavLink Href="/reportes"
+                        Icon="@Icons.Material.Filled.Description">
+
+                Reportes
+
+            </MudNavLink>
+        }
+
+
+        <MudDivider Class="my-2" />
+
+
+        <MudNavLink Icon="@Icons.Material.Filled.Logout"
+                    OnClick="CerrarSesion">
+
+            Cerrar sesión
+
+        </MudNavLink>
+
+    </MudNavMenu>
+}
+
 
 @code {
 
-    private bool menuAbierto = false;
+    private string InicialUsuario =>
+        string.IsNullOrWhiteSpace(
+            AuthService.UsuarioActual?.Nombre)
+            ? "U"
+            : AuthService.UsuarioActual.Nombre
+                .Substring(0, 1)
+                .ToUpper();
+
 
     protected override void OnInitialized()
     {
         AuthService.OnAuthStateChanged += Actualizar;
+
         CarritoService.OnCarritoChanged += Actualizar;
     }
 
-    private void ToggleNavMenu()
-    {
-        menuAbierto = !menuAbierto;
-    }
-
-    private void CerrarMenu()
-    {
-        menuAbierto = false;
-    }
 
     private void Actualizar()
     {
         InvokeAsync(StateHasChanged);
     }
 
+
     private void CerrarSesion()
     {
         AuthService.Logout();
-
-        menuAbierto = false;
 
         Navigation.NavigateTo(
             "/login",
@@ -189,9 +181,11 @@
         );
     }
 
+
     public void Dispose()
     {
         AuthService.OnAuthStateChanged -= Actualizar;
+
         CarritoService.OnCarritoChanged -= Actualizar;
     }
 }
