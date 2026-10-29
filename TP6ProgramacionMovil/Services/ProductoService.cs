@@ -56,5 +56,41 @@ namespace TP6ProgramacionMovil.Services
                 imagen.Url
             ).ToString();
         }
+
+
+        public async Task<ProductoResponse> CrearProductoAsync(
+    ProductoRequest producto)
+        {
+            var response =
+                await _http.PostAsJsonAsync(
+                    "api/Productos",
+                    producto
+                );
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error =
+                    await response.Content.ReadAsStringAsync();
+
+                throw new Exception(
+                    string.IsNullOrWhiteSpace(error)
+                        ? "No se pudo crear el producto."
+                        : error
+                );
+            }
+
+            var creado =
+                await response.Content
+                    .ReadFromJsonAsync<ProductoResponse>();
+
+            if (creado == null)
+            {
+                throw new Exception(
+                    "La respuesta del producto no es válida."
+                );
+            }
+
+            return creado;
+        }
     }
 }

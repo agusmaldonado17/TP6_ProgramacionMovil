@@ -49,5 +49,22 @@ namespace TP6ProgramacionMovil.Services
 
             return resultado;
         }
+
+        public async Task<RespuestaPaginada<VentaResponse>?> ObtenerVentasAsync(
+        int pagina = 1,
+        int tamanoPagina = 20,
+        string buscar = "")
+        {
+            var url =
+                $"api/Ventas?pagina={pagina}&tamanoPagina={tamanoPagina}&ordenarPor=fecha_desc";
+
+            if (!string.IsNullOrWhiteSpace(buscar))
+            {
+                url += $"&buscar={Uri.EscapeDataString(buscar)}";
+            }
+
+            return await _http.GetFromJsonAsync<
+                RespuestaPaginada<VentaResponse>>(url);
+        }
     }
 }

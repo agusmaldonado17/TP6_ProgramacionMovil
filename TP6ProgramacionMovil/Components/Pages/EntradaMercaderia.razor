@@ -8,6 +8,7 @@
 @inject ProveedorService ProveedorService
 @inject CompraService CompraService
 @inject NavigationManager Navigation
+@inject CategoriaService CategoriaService
 
 <h1>Entrada de mercadería</h1>
 
@@ -83,6 +84,126 @@ else
         <div class="card-body">
 
             <h5>Agregar producto</h5>
+
+            <button class="btn btn-outline-primary mb-3"
+                    @onclick="ToggleNuevoProducto">
+
+                @(mostrarNuevoProducto
+                    ? "Cancelar nuevo producto"
+                    : "Crear nuevo producto")
+
+            </button>
+
+            @if (mostrarNuevoProducto)
+            {
+                <div class="border rounded p-3 mb-4">
+
+                    <h6>Nuevo producto</h6>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Nombre
+                        </label>
+
+                        <input class="form-control"
+                               @bind="nuevoNombre" />
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Descripción
+                        </label>
+
+                        <input class="form-control"
+                               @bind="nuevoDescripcion" />
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Categoría
+                        </label>
+
+                        <select class="form-select"
+                                @bind="nuevaCategoriaId">
+
+                            <option value="0">
+                                Seleccionar categoría...
+                            </option>
+
+                            @foreach (var categoria in categorias)
+                            {
+                                <option value="@categoria.Id">
+                                    @categoria.Nombre
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Precio de venta
+                        </label>
+
+                        <input type="number"
+                               min="0.01"
+                               step="0.01"
+                               class="form-control"
+                               @bind="nuevoPrecioVenta" />
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Punto de reposición
+                        </label>
+
+                        <input type="number"
+                               min="0"
+                               class="form-control"
+                               @bind="nuevoPuntoReposicion" />
+
+                    </div>
+
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Stock máximo
+                        </label>
+
+                        <input type="number"
+                               min="1"
+                               class="form-control"
+                               @bind="nuevoStockMaximo" />
+
+                    </div>
+
+
+                    <button class="btn btn-success w-100"
+                            disabled="@creandoProducto"
+                            @onclick="CrearNuevoProducto">
+
+                        @(creandoProducto
+                            ? "Creando..."
+                            : "Crear producto")
+
+                    </button>
+
+                </div>
+            }
 
             <div class="mb-3">
 
@@ -220,6 +341,7 @@ else
     private List<ProveedorResponse> proveedores = new();
     private List<ProductoResponse> productos = new();
     private List<ItemEntrada> items = new();
+    private List<CategoriaResponse> categorias = new();
 
     private int proveedorId;
     private int productoId;
@@ -235,6 +357,21 @@ else
 
     private int compraId;
     private decimal totalCompra;
+
+
+
+    private bool mostrarNuevoProducto;
+
+    private string nuevoNombre = "";
+    private string nuevoDescripcion = "";
+
+    private decimal nuevoPrecioVenta;
+
+    private int nuevoPuntoReposicion;
+    private int nuevoStockMaximo;
+    private int nuevaCategoriaId;
+
+    private bool creandoProducto;
 
 
     private decimal Total =>
@@ -270,6 +407,10 @@ else
             proveedores =
                 await ProveedorService
                     .ObtenerProveedoresAsync();
+
+            categorias =
+                await CategoriaService
+                    .ObtenerCategoriasAsync();
 
             var respuestaProductos =
                 await ProductoService
@@ -427,5 +568,112 @@ else
 
         entradaExitosa = false;
         error = "";
+    }
+
+    private void ToggleNuevoProducto()
+    {
+        mostrarNuevoProducto =
+            !mostrarNuevoProducto;
+    }
+
+    private async Task CrearNuevoProducto()
+    {
+        error = "";
+
+        if (string.IsNullOrWhiteSpace(nuevoNombre))
+        {
+            error =
+                "Debe ingresar el nombre del producto.";
+
+            return;
+        }
+
+        if (nuevaCategoriaId == 0)
+        {
+            error =
+                "Debe seleccionar una categoría.";
+
+            return;
+        }
+
+        if (nuevoPrecioVenta <= 0)
+        {
+            error =
+                "El precio de venta debe ser mayor a cero.";
+
+            return;
+        }
+
+        if (nuevoStockMaximo <= 0)
+        {
+            error =
+                "El stock máximo debe ser mayor a cero.";
+
+            return;
+        }
+
+        creandoProducto = true;
+
+        try
+        {
+            var request =
+                new ProductoRequest
+                {
+                    Nombre = nuevoNombre,
+                    Descripcion = nuevoDescripcion,
+
+                    PrecioVenta =
+                        nuevoPrecioVenta,
+
+                    // IMPORTANTE:
+                    // El stock entra después mediante
+                    // la entrada de mercadería.
+                    StockActual = 0,
+
+                    PuntoReposicion =
+                        nuevoPuntoReposicion,
+
+                    StockMaximo =
+                        nuevoStockMaximo,
+
+                    Activo = true,
+
+                    CategoriaProductoId =
+                        nuevaCategoriaId
+                };
+
+
+            var nuevo =
+                await ProductoService
+                    .CrearProductoAsync(request);
+
+
+            productos.Add(nuevo);
+
+
+            // Lo dejamos seleccionado automáticamente
+            // para agregarlo a esta misma entrada.
+            productoId = nuevo.Id;
+
+
+            mostrarNuevoProducto = false;
+
+
+            nuevoNombre = "";
+            nuevoDescripcion = "";
+            nuevoPrecioVenta = 0;
+            nuevoPuntoReposicion = 0;
+            nuevoStockMaximo = 0;
+            nuevaCategoriaId = 0;
+        }
+        catch (Exception ex)
+        {
+            error =
+                $"No se pudo crear el producto: {ex.Message}";
+        }
+        finally
+        {
+            creandoProducto = false;
+        }
     }
 }
