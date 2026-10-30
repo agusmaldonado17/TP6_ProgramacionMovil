@@ -29,7 +29,7 @@
         <MauiXamlInflator>SourceGen</MauiXamlInflator>
 
         <!-- Display name -->
-        <ApplicationTitle>TP6ProgramacionMovil</ApplicationTitle>
+        <ApplicationTitle>App de Stock</ApplicationTitle>
 
         <!-- App Identifier -->
         <ApplicationId>com.companyname.tp6programacionmovil</ApplicationId>
@@ -71,6 +71,10 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
         <PackageReference Include="MudBlazor" Version="9.11.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="wwwroot\lib\" />
     </ItemGroup>
 
 </Project>

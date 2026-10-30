@@ -6,107 +6,258 @@
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<h1>Carrito</h1>
 
-@if (CarritoService.Items.Count == 0)
-{
-    <div class="alert alert-info">
-        El carrito está vacío.
+<MudStack Spacing="4">
+
+    <div>
+
+        <MudText Typo="Typo.h4">
+            Carrito
+        </MudText>
+
+        <MudText Typo="Typo.body1"
+                 Color="Color.Secondary">
+
+            Revisá los productos antes de finalizar la compra
+
+        </MudText>
+
     </div>
 
-    <button class="btn btn-primary"
-            @onclick="VolverCatalogo">
-        Ver productos
-    </button>
-}
-else
-{
-    @foreach (var item in CarritoService.Items)
+
+    @if (CarritoService.Items.Count == 0)
     {
-        <div class="card mb-3">
+        <MudPaper Elevation="0"
+                  Class="pa-8 text-center"
+                  Style="border-radius: 20px;">
 
-            <div class="card-body">
+            <MudIcon Icon="@Icons.Material.Filled.ShoppingCart"
+                     Size="Size.Large"
+                     Color="Color.Secondary"
+                     Class="mb-3" />
 
-                <h5>
-                    @item.Producto.Nombre
-                </h5>
+            <MudText Typo="Typo.h6">
+                Tu carrito está vacío
+            </MudText>
 
-                <p class="mb-1">
-                    Precio:
-                    <strong>
-                        $@item.Producto.PrecioVenta.ToString("N2")
-                    </strong>
-                </p>
+            <MudText Typo="Typo.body2"
+                     Color="Color.Secondary"
+                     Class="mb-4">
 
-                <p>
-                    Stock disponible:
-                    @item.Producto.StockActual
-                </p>
+                Agregá productos desde el catálogo
 
-                <div class="d-flex align-items-center gap-2 mb-3">
+            </MudText>
 
-                    <button class="btn btn-outline-secondary"
-                            @onclick="() => Disminuir(item.Producto.Id)">
-                        -
-                    </button>
 
-                    <strong>
-                        @item.Cantidad
-                    </strong>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Storefront"
+                       OnClick="VolverCatalogo">
 
-                    <button class="btn btn-outline-secondary"
-                            disabled="@(item.Cantidad >= item.Producto.StockActual)"
-                            @onclick="() => Aumentar(item.Producto.Id)">
-                        +
-                    </button>
+                Ver productos
 
-                </div>
+            </MudButton>
 
-                <p>
-                    Subtotal:
-                    <strong>
-                        $@item.Subtotal.ToString("N2")
-                    </strong>
-                </p>
+        </MudPaper>
+    }
+    else
+    {
+        <MudGrid>
 
-                <button class="btn btn-outline-danger"
-                        @onclick="() => Eliminar(item.Producto.Id)">
-                    Eliminar
-                </button>
+            <MudItem xs="12"
+                     md="8">
 
-            </div>
+                <MudStack Spacing="3">
 
-        </div>
+                    @foreach (var item in CarritoService.Items)
+                    {
+                        <MudPaper Elevation="1"
+                                  Class="pa-4"
+                                  Style="border-radius: 18px;">
+
+                            <MudGrid>
+
+                                <MudItem xs="12"
+                                         sm="7">
+
+                                    <MudText Typo="Typo.h6">
+                                        @item.Producto.Nombre
+                                    </MudText>
+
+
+                                    <MudText Typo="Typo.body2"
+                                             Color="Color.Secondary">
+
+                                        Precio unitario:
+                                        $@item.Producto.PrecioVenta.ToString("N2")
+
+                                    </MudText>
+
+
+                                    <MudText Typo="Typo.caption"
+                                             Color="Color.Secondary">
+
+                                        Stock disponible:
+                                        @item.Producto.StockActual
+
+                                    </MudText>
+
+                                </MudItem>
+
+
+                                <MudItem xs="12"
+                                         sm="5">
+
+                                    <MudStack AlignItems="AlignItems.End"
+                                              Spacing="2">
+
+                                        <MudStack Row="true"
+                                                  AlignItems="AlignItems.Center">
+
+                                            <MudButton Variant="Variant.Outlined"
+                                                       Color="Color.Primary"
+                                                       OnClick="@(() => Disminuir(item.Producto.Id))">
+
+                                                <MudIcon Icon="@Icons.Material.Filled.Remove" />
+
+                                            </MudButton>
+
+
+                                            <MudText Typo="Typo.h6"
+                                                     Class="px-3">
+
+                                                @item.Cantidad
+
+                                            </MudText>
+
+
+                                            <MudButton Variant="Variant.Outlined"
+                                                       Color="Color.Primary"
+                                                       Disabled="@(item.Cantidad >= item.Producto.StockActual)"
+                                                       OnClick="@(() => Aumentar(item.Producto.Id))">
+
+                                                <MudIcon Icon="@Icons.Material.Filled.Add" />
+
+                                            </MudButton>
+
+                                        </MudStack>
+
+
+                                        <MudText Typo="Typo.subtitle1">
+
+                                            Subtotal:
+                                            <strong>
+                                                $@item.Subtotal.ToString("N2")
+                                            </strong>
+
+                                        </MudText>
+
+
+                                        <MudButton Variant="Variant.Text"
+                                                   Color="Color.Error"
+                                                   StartIcon="@Icons.Material.Filled.Delete"
+                                                   OnClick="@(() => Eliminar(item.Producto.Id))">
+
+                                            Eliminar
+
+                                        </MudButton>
+
+                                    </MudStack>
+
+                                </MudItem>
+
+                            </MudGrid>
+
+                        </MudPaper>
+                    }
+
+                </MudStack>
+
+            </MudItem>
+
+
+            <MudItem xs="12"
+                     md="4">
+
+                <MudPaper Elevation="2"
+                          Class="pa-5"
+                          Style="border-radius: 20px;">
+
+                    <MudStack Spacing="3">
+
+                        <MudText Typo="Typo.h6">
+                            Resumen
+                        </MudText>
+
+
+                        <MudStack Row="true"
+                                  Justify="Justify.SpaceBetween">
+
+                            <MudText>
+                                Productos
+                            </MudText>
+
+                            <MudText>
+                                @CarritoService.CantidadTotal
+                            </MudText>
+
+                        </MudStack>
+
+
+                        <MudDivider />
+
+
+                        <MudStack Row="true"
+                                  Justify="Justify.SpaceBetween"
+                                  AlignItems="AlignItems.Center">
+
+                            <MudText Typo="Typo.h6">
+                                Total
+                            </MudText>
+
+                            <MudText Typo="Typo.h5"
+                                     Color="Color.Primary">
+
+                                $@CarritoService.Total.ToString("N2")
+
+                            </MudText>
+
+                        </MudStack>
+
+
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Success"
+                                   Size="Size.Large"
+                                   FullWidth="true"
+                                   StartIcon="@Icons.Material.Filled.Payment"
+                                   OnClick="FinalizarCompra">
+
+                            Finalizar compra
+
+                        </MudButton>
+
+
+                        <MudButton Variant="Variant.Outlined"
+                                   Color="Color.Error"
+                                   FullWidth="true"
+                                   StartIcon="@Icons.Material.Filled.DeleteSweep"
+                                   OnClick="VaciarCarrito">
+
+                            Vaciar carrito
+
+                        </MudButton>
+
+                    </MudStack>
+
+                </MudPaper>
+
+            </MudItem>
+
+        </MudGrid>
     }
 
-    <div class="card mt-4">
+</MudStack>
 
-        <div class="card-body">
-
-            <h4>
-                Total:
-                $@CarritoService.Total.ToString("N2")
-            </h4>
-
-            <p>
-                Productos:
-                @CarritoService.CantidadTotal
-            </p>
-
-            <button class="btn btn-success w-100 mb-2"
-                    @onclick="FinalizarCompra">
-                Finalizar compra
-            </button>
-
-            <button class="btn btn-outline-danger w-100"
-                    @onclick="VaciarCarrito">
-                Vaciar carrito
-            </button>
-
-        </div>
-
-    </div>
-}
 
 @code {
 
@@ -157,8 +308,9 @@ else
         Navigation.NavigateTo("/catalogo");
     }
 
+
     private void FinalizarCompra()
     {
-    Navigation.NavigateTo("/finalizar-compra");
+        Navigation.NavigateTo("/finalizar-compra");
     }
 }
